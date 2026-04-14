@@ -179,14 +179,19 @@ def init_database(db_engine: Engine, seed: int = 137) -> Engine:
         quotes_df["request_id"] = range(1, len(quotes_df) + 1)
         quotes_df["order_date"] = initial_date
 
-        # Unpack metadata fields (job_type, order_size, event_type) if present
+        # Unpack metadata fields (job_type, order_size, event_type) if present.
+        # Parse metadata first into a separate Series, then assign all derived columns
+        # in one .assign() call to avoid pandas Copy-on-Write FutureWarnings.
         if "request_metadata" in quotes_df.columns:
-            quotes_df["request_metadata"] = quotes_df["request_metadata"].apply(
+            parsed_metadata = quotes_df["request_metadata"].apply(
                 lambda x: ast.literal_eval(x) if isinstance(x, str) else x
             )
-            quotes_df["job_type"] = quotes_df["request_metadata"].apply(lambda x: x.get("job_type", ""))
-            quotes_df["order_size"] = quotes_df["request_metadata"].apply(lambda x: x.get("order_size", ""))
-            quotes_df["event_type"] = quotes_df["request_metadata"].apply(lambda x: x.get("event_type", ""))
+            quotes_df = quotes_df.assign(
+                request_metadata=parsed_metadata,
+                job_type=parsed_metadata.apply(lambda x: x.get("job_type", "")),
+                order_size=parsed_metadata.apply(lambda x: x.get("order_size", "")),
+                event_type=parsed_metadata.apply(lambda x: x.get("event_type", "")),
+            )
 
         # Retain only relevant columns
         quotes_df = quotes_df[[

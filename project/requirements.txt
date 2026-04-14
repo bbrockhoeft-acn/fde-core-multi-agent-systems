@@ -1,5 +1,11 @@
 pandas==2.2.3
 typing==3.7.4.3
+# openai pinned to 1.76.0 in original spec; pydantic-ai upgraded it to 2.x — see note below
 openai==1.76.0
 SQLAlchemy==2.0.40
 python-dotenv==1.1.0
+
+# Added for multi-agent implementation
+# Note: installing pydantic-ai will upgrade openai to 2.x (required by pydantic-ai).
+# The helper functions in project_starter.py do not call openai directly, so this is safe.
+pydantic-ai
