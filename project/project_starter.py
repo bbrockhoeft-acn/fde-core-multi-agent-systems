@@ -593,24 +593,239 @@ def search_quote_history(search_terms: List[str], limit: int = 5) -> List[Dict]:
 ########################
 ########################
 
+# ── Imports ──────────────────────────────────────────────────────────────────
+from dataclasses import dataclass, field
+from pydantic_ai import Agent, RunContext
+from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.providers.openai import OpenAIProvider
 
-# Set up and load your env parameters and instantiate your model.
+# ── Environment & Model Setup ─────────────────────────────────────────────────
+dotenv.load_dotenv()
+_api_key = os.getenv("UDACITY_OPENAI_API_KEY")
+_model = OpenAIModel(
+    "gpt-4o-mini",
+    provider=OpenAIProvider(
+        base_url="https://openai.vocareum.com/v1",
+        api_key=_api_key,
+    ),
+)
 
 
-"""Set up tools for your agents to use, these should be methods that combine the database functions above
- and apply criteria to them to ensure that the flow of the system is correct."""
+# ── Shared State ──────────────────────────────────────────────────────────────
+@dataclass
+class SystemState:
+    """Shared context threaded through all agent calls via RunContext.deps.
+
+    Attributes:
+        db_engine: SQLAlchemy Engine backed by the SQLite munder_difflin.db file.
+        current_date: ISO-format date string from the CSV request row. Must
+            always be set from source data — never from datetime.now().
+        session_log: Accumulated agent messages for the current request cycle.
+    """
+    db_engine: Engine
+    current_date: str
+    session_log: list[str] = field(default_factory=list)
 
 
-# Tools for inventory agent
+# ── Catalog: exact item names required for all DB transactions ────────────────
+CATALOG_ITEMS: list[str] = [item["item_name"] for item in paper_supplies]
 
 
-# Tools for quoting agent
+# ── Agent Definitions ─────────────────────────────────────────────────────────
+inventory_agent = Agent(
+    model=_model,
+    deps_type=SystemState,
+    system_prompt="[STUB] You are the InventoryAgent for Munder Difflin Paper Company.",
+)
+
+quoting_agent = Agent(
+    model=_model,
+    deps_type=SystemState,
+    system_prompt="[STUB] You are the QuotingAgent for Munder Difflin Paper Company.",
+)
+
+sales_agent = Agent(
+    model=_model,
+    deps_type=SystemState,
+    system_prompt="[STUB] You are the SalesAgent for Munder Difflin Paper Company.",
+)
+
+orchestrator_agent = Agent(
+    model=_model,
+    deps_type=SystemState,
+    system_prompt="[STUB] You are the OrchestratorAgent for Munder Difflin Paper Company.",
+)
 
 
-# Tools for ordering agent
+# ── Tools: InventoryAgent ─────────────────────────────────────────────────────
+
+@inventory_agent.tool
+def check_inventory_tool(ctx: RunContext[SystemState], item_name: str) -> dict:
+    """Return current stock level for a named catalog item.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+        item_name: Exact catalog name of the item to look up.
+
+    Returns:
+        Dict with item_name, current_stock, min_stock_level, unit_price, in_stock.
+    """
+    return {"stub": "check_inventory_tool", "item_name": item_name}
 
 
-# Set up your agents and create an orchestration agent that will manage them.
+@inventory_agent.tool
+def reorder_tool(ctx: RunContext[SystemState], item_name: str, quantity: int) -> dict:
+    """Place a stock_orders transaction to replenish a low-stock item.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+        item_name: Exact catalog name of the item to reorder.
+        quantity: Number of units to order from the supplier.
+
+    Returns:
+        Dict with item_name, quantity_ordered, estimated_arrival, transaction_id.
+    """
+    return {"stub": "reorder_tool", "item_name": item_name, "quantity": quantity}
+
+
+# ── Tools: QuotingAgent ───────────────────────────────────────────────────────
+
+@quoting_agent.tool
+def search_quote_history_tool(ctx: RunContext[SystemState], search_terms: str) -> list:
+    """Retrieve historical quotes matching search terms for pricing context.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+        search_terms: Space-separated keywords to search across quote history.
+
+    Returns:
+        List of matching quote dicts (original_request, total_amount, etc.).
+    """
+    return [{"stub": "search_quote_history_tool", "search_terms": search_terms}]
+
+
+@quoting_agent.tool
+def get_inventory_price_tool(ctx: RunContext[SystemState], item_name: str) -> dict:
+    """Return unit price and available quantity for a catalog item.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+        item_name: Exact catalog name of the item to price.
+
+    Returns:
+        Dict with item_name, unit_price, current_stock.
+    """
+    return {"stub": "get_inventory_price_tool", "item_name": item_name}
+
+
+# ── Tools: SalesAgent ─────────────────────────────────────────────────────────
+
+@sales_agent.tool
+def fulfill_order_tool(
+    ctx: RunContext[SystemState],
+    item_name: str,
+    quantity: int,
+    unit_price: float,
+) -> dict:
+    """Record a completed sale as a sales transaction in the database.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+        item_name: Exact catalog name of the sold item.
+        quantity: Number of units sold.
+        unit_price: Discounted unit price agreed in the quote.
+
+    Returns:
+        Dict with transaction_id, item_name, quantity, total_price.
+    """
+    return {"stub": "fulfill_order_tool", "item_name": item_name, "quantity": quantity}
+
+
+@sales_agent.tool
+def get_delivery_date_tool(ctx: RunContext[SystemState], quantity: int) -> str:
+    """Return the estimated supplier delivery date for a given order quantity.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+        quantity: Number of units being ordered/delivered.
+
+    Returns:
+        ISO date string of estimated delivery.
+    """
+    return "[STUB] delivery_date"
+
+
+@sales_agent.tool
+def get_balance_tool(ctx: RunContext[SystemState]) -> dict:
+    """Return current cash balance and a financial report summary.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+
+    Returns:
+        Dict with cash_balance and report dict from generate_financial_report().
+    """
+    return {"stub": "get_balance_tool"}
+
+
+# ── Discount Helper ───────────────────────────────────────────────────────────
+
+def calculate_discount(quantity: int) -> float:
+    """Return the applicable volume discount rate for a given order quantity.
+
+    Discount tiers:
+        < 100 units   → 0%  (no discount)
+        100–499 units → 5%
+        500–999 units → 10%
+        ≥ 1000 units  → 15%
+
+    Args:
+        quantity: Number of units in the order.
+
+    Returns:
+        Discount rate as a float (e.g., 0.10 for 10%).
+    """
+    if quantity >= 1000:
+        return 0.15
+    elif quantity >= 500:
+        return 0.10
+    elif quantity >= 100:
+        return 0.05
+    return 0.0
+
+
+# ── Orchestration ─────────────────────────────────────────────────────────────
+
+class PaperCompanySystem:
+    """Orchestrates the Munder Difflin multi-agent pipeline.
+
+    Classifies incoming customer requests by intent and sequences
+    the appropriate worker agents (Inventory, Quoting, Sales) to
+    produce a customer-facing text response.
+    """
+
+    def process_request(self, request: str, date: str) -> str:
+        """Process a single customer request through the agent pipeline.
+
+        Args:
+            request: Raw customer request text.
+            date: ISO date string for this request (from CSV request_date column).
+                  Must come from source data, never from datetime.now().
+
+        Returns:
+            Customer-facing response string.
+
+        Raises:
+            ValueError: If date is empty or None.
+        """
+        if not date:
+            raise ValueError("date must be provided — never default to today's date")
+
+        state = SystemState(db_engine=db_engine, current_date=date)
+
+        # [STUB] Full LLM orchestration implemented in Milestone 4.
+        state.session_log.append(f"[STUB] process_request called: {request[:60]}...")
+        return f"[STUB] Request received for {date}: {request[:80]}..."
 
 
 # Run your test scenarios by writing them here. Make sure to keep track of them.
@@ -618,7 +833,7 @@ def search_quote_history(search_terms: List[str], limit: int = 5) -> List[Dict]:
 def run_test_scenarios():
     
     print("Initializing Database...")
-    init_database()
+    init_database(db_engine)
     try:
         quote_requests_sample = pd.read_csv("quote_requests_sample.csv")
         quote_requests_sample["request_date"] = pd.to_datetime(
@@ -643,6 +858,7 @@ def run_test_scenarios():
     ############
     ############
     ############
+    system = PaperCompanySystem()
 
     results = []
     for idx, row in quote_requests_sample.iterrows():
@@ -665,7 +881,7 @@ def run_test_scenarios():
         ############
         ############
 
-        # response = call_your_multi_agent_system(request_with_date)
+        response = system.process_request(row["request"], request_date)
 
         # Update state
         report = generate_financial_report(request_date)
