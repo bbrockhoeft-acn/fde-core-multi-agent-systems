@@ -631,6 +631,9 @@ class SystemState:
 # ── Catalog: exact item names required for all DB transactions ────────────────
 CATALOG_ITEMS: list[str] = [item["item_name"] for item in paper_supplies]
 
+# Formatted catalog list injected into agent system prompts for exact-name guidance
+_CATALOG_NAMES = "\n".join(f"  • {name}" for name in CATALOG_ITEMS)
+
 
 def resolve_item_name(customer_term: str) -> str | None:
     """Resolve a customer's informal item description to the canonical catalog name.
@@ -675,28 +678,99 @@ def resolve_item_name(customer_term: str) -> str | None:
 
 
 # ── Agent Definitions ─────────────────────────────────────────────────────────
+
 inventory_agent = Agent(
     model=_model,
     deps_type=SystemState,
-    system_prompt="[STUB] You are the InventoryAgent for Munder Difflin Paper Company.",
+    system_prompt=f"""You are the Inventory Agent for Munder Difflin Paper Company.
+
+Your role: check current stock levels for requested items and, after a sale, \
+auto-reorder items that fall below their minimum stock level.
+
+AVAILABLE CATALOG ITEMS (use these exact names in every tool call):
+{_CATALOG_NAMES}
+
+BEHAVIOR RULES:
+1. Always call check_inventory_tool before reporting availability for any item.
+2. If the customer's requested quantity exceeds current_stock, include the phrase
+   "INSUFFICIENT STOCK" for that item in your response — do not imply fulfillment
+   is possible.
+3. When asked to perform a post-sale reorder check: call check_inventory_tool for
+   each sold item; if current_stock < min_stock_level, call reorder_tool with
+   quantity = 2 × min_stock_level.
+4. If an item description does not match any catalog entry, state it clearly.
+5. Keep responses factual and concise — downstream agents will use your output.""",
 )
 
 quoting_agent = Agent(
     model=_model,
     deps_type=SystemState,
-    system_prompt="[STUB] You are the QuotingAgent for Munder Difflin Paper Company.",
+    system_prompt=f"""You are the Quoting Agent for Munder Difflin Paper Company.
+
+Your role: generate accurate, detailed price quotes using volume discount tiers.
+
+AVAILABLE CATALOG ITEMS (use these exact names in every tool call):
+{_CATALOG_NAMES}
+
+VOLUME DISCOUNT TIERS (applied to the base unit price):
+  Fewer than 100 units  →  0 % (standard price)
+  100 – 499 units       →  5 % off
+  500 – 999 units       → 10 % off
+  1,000 or more units   → 15 % off
+
+BEHAVIOR RULES:
+1. Call get_inventory_price_tool to retrieve the base unit price for each item.
+2. Call search_quote_history_tool with relevant keywords for pricing context.
+3. Apply the correct discount tier based on the requested quantity.
+4. Every quote MUST state: item name, quantity, base unit price, discount tier
+   applied, discounted unit price, and total price (rounded to 2 decimal places).
+5. If inventory context contains "INSUFFICIENT STOCK" for an item, state that the
+   item cannot be quoted at the requested quantity.""",
 )
 
 sales_agent = Agent(
     model=_model,
     deps_type=SystemState,
-    system_prompt="[STUB] You are the SalesAgent for Munder Difflin Paper Company.",
+    system_prompt=f"""You are the Sales Agent for Munder Difflin Paper Company.
+
+Your role: finalize confirmed orders — record the transaction, provide delivery
+estimates, and report the updated financial balance.
+
+AVAILABLE CATALOG ITEMS (use these exact names in every tool call):
+{_CATALOG_NAMES}
+
+BEHAVIOR RULES:
+1. Call fulfill_order_tool using the discounted unit price from the approved quote.
+2. Call get_delivery_date_tool to estimate delivery based on order quantity.
+3. Call get_balance_tool after the sale to surface the updated cash balance.
+4. Your response MUST include: items sold, quantities, total amount charged,
+   estimated delivery date, and updated cash balance.
+5. If the quote or inventory context contains "INSUFFICIENT STOCK", do NOT call
+   fulfill_order_tool — report instead that the order cannot be processed.""",
 )
 
 orchestrator_agent = Agent(
     model=_model,
     deps_type=SystemState,
-    system_prompt="[STUB] You are the OrchestratorAgent for Munder Difflin Paper Company.",
+    system_prompt="""You are the Orchestrator for Munder Difflin Paper Company.
+
+You operate in two modes depending on what you are asked:
+
+MODE 1 — INTENT CLASSIFICATION:
+When asked to classify a request, reply with EXACTLY one of these words and nothing else:
+  inventory_query    (customer asks about stock, availability, or catalog)
+  quote_request      (customer wants a price or quote — no confirmed purchase yet)
+  order_fulfillment  (customer is placing an order, buying, or confirming a purchase)
+  unknown            (intent cannot be determined)
+
+MODE 2 — RESPONSE COMPOSITION:
+When asked to compose a customer reply, write a professional, friendly message that:
+  • States what was quoted or ordered (item names, quantities, prices)
+  • Explains the discount tier applied and why
+  • Includes the delivery estimate for confirmed orders
+  • Gives a clear, polite explanation if anything could not be fulfilled
+
+Never expose internal error messages, stack traces, profit margins, or raw DB fields.""",
 )
 
 
@@ -979,10 +1053,85 @@ class PaperCompanySystem:
             raise ValueError("date must be provided — never default to today's date")
 
         state = SystemState(db_engine=db_engine, current_date=date)
+        dated_request = f"{request}\n\n(Request date: {date})"
 
-        # [STUB] Full LLM orchestration implemented in Milestone 4.
-        state.session_log.append(f"[STUB] process_request called: {request[:60]}...")
-        return f"[STUB] Request received for {date}: {request[:80]}..."
+        # ── Step 1: Classify intent ───────────────────────────────────────────
+        intent_result = orchestrator_agent.run_sync(
+            f"Classify the intent of this customer request:\n{request}",
+            deps=state,
+        )
+        raw_intent = intent_result.output.strip().lower()
+        intent = "unknown"
+        for candidate in ("inventory_query", "quote_request", "order_fulfillment"):
+            if candidate in raw_intent:
+                intent = candidate
+                break
+        state.session_log.append(f"[intent] {intent}")
+
+        inventory_ctx = quote_ctx = sale_ctx = ""
+
+        # ── Step 2: Inventory check (all recognised intents) ─────────────────
+        if intent != "unknown":
+            inv = inventory_agent.run_sync(
+                f"Check inventory availability for this customer request:\n{dated_request}",
+                deps=state,
+            )
+            inventory_ctx = inv.output
+            state.session_log.append(f"[inventory] {inventory_ctx[:300]}")
+
+        # ── Step 3: Quote (quote and order intents) ───────────────────────────
+        if intent in ("quote_request", "order_fulfillment"):
+            qt = quoting_agent.run_sync(
+                f"Generate a price quote for this customer request:\n{dated_request}"
+                f"\n\n--- Inventory status ---\n{inventory_ctx}",
+                deps=state,
+            )
+            quote_ctx = qt.output
+            state.session_log.append(f"[quote] {quote_ctx[:300]}")
+
+        # ── Step 4: Sales fulfillment (order intent only) ─────────────────────
+        if intent == "order_fulfillment":
+            if "insufficient stock" in inventory_ctx.lower():
+                sale_ctx = (
+                    "Order could not be fulfilled: one or more requested items "
+                    "have insufficient stock."
+                )
+            else:
+                sale = sales_agent.run_sync(
+                    f"Fulfill this confirmed order:\n{dated_request}"
+                    f"\n\n--- Inventory status ---\n{inventory_ctx}"
+                    f"\n\n--- Approved quote ---\n{quote_ctx}",
+                    deps=state,
+                )
+                sale_ctx = sale.output
+                state.session_log.append(f"[sale] {sale_ctx[:300]}")
+
+                # Auto-reorder: check if sold items fell below min_stock_level
+                reorder = inventory_agent.run_sync(
+                    f"A sale was just completed for the following order:\n{dated_request}"
+                    f"\n\nFor each item in that order: call check_inventory_tool, and if "
+                    f"current_stock < min_stock_level, call reorder_tool with "
+                    f"quantity = 2 × min_stock_level.",
+                    deps=state,
+                )
+                reorder_ctx = reorder.output
+                state.session_log.append(f"[reorder] {reorder_ctx[:300]}")
+                if reorder_ctx:
+                    sale_ctx += f"\n\n[Reorder status: {reorder_ctx}]"
+
+        # ── Step 5: Compose customer-facing response ──────────────────────────
+        compose_prompt = (
+            f"Compose a professional customer-facing response for "
+            f"Munder Difflin Paper Company.\n\n"
+            f"Customer request: {request}\n"
+            f"Request date: {date}\n"
+            f"Intent classified: {intent}\n\n"
+            f"--- Inventory status (internal context) ---\n{inventory_ctx}\n\n"
+            f"--- Quote details (internal context) ---\n{quote_ctx}\n\n"
+            f"--- Order / sale result (internal context) ---\n{sale_ctx}"
+        )
+        final = orchestrator_agent.run_sync(compose_prompt, deps=state)
+        return final.output
 
 
 # Run your test scenarios by writing them here. Make sure to keep track of them.
