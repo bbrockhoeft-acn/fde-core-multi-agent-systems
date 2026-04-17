@@ -1,3 +1,4 @@
+import difflib
 import pandas as pd
 import numpy as np
 import os
@@ -631,6 +632,48 @@ class SystemState:
 CATALOG_ITEMS: list[str] = [item["item_name"] for item in paper_supplies]
 
 
+def resolve_item_name(customer_term: str) -> str | None:
+    """Resolve a customer's informal item description to the canonical catalog name.
+
+    Resolution order:
+        1. Exact match (case-sensitive)
+        2. Case-insensitive exact match
+        3. Fuzzy match via difflib.get_close_matches on lowercased names (cutoff=0.6)
+        4. Substring match (customer_term is contained within a catalog name, case-insensitive)
+
+    Args:
+        customer_term: The item description provided by the customer.
+
+    Returns:
+        The canonical CATALOG_ITEMS name, or None if no reasonable match is found.
+    """
+    if not customer_term:
+        return None
+
+    # 1. Exact match (case-sensitive)
+    if customer_term in CATALOG_ITEMS:
+        return customer_term
+
+    # 2. Case-insensitive exact match
+    lower_term = customer_term.lower()
+    for item in CATALOG_ITEMS:
+        if item.lower() == lower_term:
+            return item
+
+    # 3. Fuzzy match (case-insensitive) — compare lowercased names
+    lower_catalog = [item.lower() for item in CATALOG_ITEMS]
+    matches = difflib.get_close_matches(lower_term, lower_catalog, n=1, cutoff=0.6)
+    if matches:
+        return CATALOG_ITEMS[lower_catalog.index(matches[0])]
+
+    # 4. Substring match — customer_term appears inside a catalog name
+    for item in CATALOG_ITEMS:
+        if lower_term in item.lower():
+            return item
+
+    return None
+
+
 # ── Agent Definitions ─────────────────────────────────────────────────────────
 inventory_agent = Agent(
     model=_model,
@@ -670,7 +713,31 @@ def check_inventory_tool(ctx: RunContext[SystemState], item_name: str) -> dict:
     Returns:
         Dict with item_name, current_stock, min_stock_level, unit_price, in_stock.
     """
-    return {"stub": "check_inventory_tool", "item_name": item_name}
+    resolved = resolve_item_name(item_name)
+    if resolved is None:
+        return {"error": f"Item '{item_name}' not found in catalog."}
+
+    # Current stock from transaction history
+    stock_df = get_stock_level(resolved, ctx.deps.current_date)
+    current_stock = int(stock_df["current_stock"].iloc[0]) if not stock_df.empty else 0
+
+    # Unit price and reorder threshold from the inventory reference table
+    with ctx.deps.db_engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT unit_price, min_stock_level FROM inventory WHERE item_name = :name"),
+            {"name": resolved},
+        ).fetchone()
+
+    if row is None:
+        return {"error": f"Item '{resolved}' is not currently stocked."}
+
+    return {
+        "item_name": resolved,
+        "current_stock": current_stock,
+        "min_stock_level": int(row[1]),
+        "unit_price": float(row[0]),
+        "in_stock": current_stock > 0,
+    }
 
 
 @inventory_agent.tool
@@ -685,7 +752,43 @@ def reorder_tool(ctx: RunContext[SystemState], item_name: str, quantity: int) ->
     Returns:
         Dict with item_name, quantity_ordered, estimated_arrival, transaction_id.
     """
-    return {"stub": "reorder_tool", "item_name": item_name, "quantity": quantity}
+    resolved = resolve_item_name(item_name)
+    if resolved is None:
+        return {"error": f"Item '{item_name}' not found in catalog."}
+
+    # Look up supplier cost per unit from the inventory reference table
+    with ctx.deps.db_engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT unit_price FROM inventory WHERE item_name = :name"),
+            {"name": resolved},
+        ).fetchone()
+
+    if row is None:
+        return {"error": f"Item '{resolved}' is not currently stocked."}
+
+    unit_price = float(row[0])
+    total_cost = round(quantity * unit_price, 2)
+
+    # Record a stock_orders transaction (reduces cash balance)
+    transaction_id = create_transaction(
+        item_name=resolved,
+        transaction_type="stock_orders",
+        quantity=quantity,
+        price=total_cost,
+        date=ctx.deps.current_date,
+    )
+
+    # Estimate when the supplier will deliver
+    estimated_arrival = get_supplier_delivery_date(ctx.deps.current_date, quantity)
+
+    return {
+        "item_name": resolved,
+        "quantity_ordered": quantity,
+        "estimated_arrival": estimated_arrival,
+        "transaction_id": transaction_id,
+        "unit_price": unit_price,
+        "total_cost": total_cost,
+    }
 
 
 # ── Tools: QuotingAgent ───────────────────────────────────────────────────────
@@ -701,7 +804,9 @@ def search_quote_history_tool(ctx: RunContext[SystemState], search_terms: str) -
     Returns:
         List of matching quote dicts (original_request, total_amount, etc.).
     """
-    return [{"stub": "search_quote_history_tool", "search_terms": search_terms}]
+    # Split the space-separated string into individual search terms
+    terms = [t.strip() for t in search_terms.split() if t.strip()]
+    return search_quote_history(terms, limit=5)
 
 
 @quoting_agent.tool
@@ -715,7 +820,31 @@ def get_inventory_price_tool(ctx: RunContext[SystemState], item_name: str) -> di
     Returns:
         Dict with item_name, unit_price, current_stock.
     """
-    return {"stub": "get_inventory_price_tool", "item_name": item_name}
+    resolved = resolve_item_name(item_name)
+    if resolved is None:
+        return {"error": f"Item '{item_name}' not found in catalog."}
+
+    # Unit price from the inventory reference table
+    with ctx.deps.db_engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT unit_price FROM inventory WHERE item_name = :name"),
+            {"name": resolved},
+        ).fetchone()
+
+    if row is None:
+        return {"error": f"Item '{resolved}' is not currently stocked."}
+
+    unit_price = float(row[0])
+
+    # Current stock derived from transaction history
+    all_inventory = get_all_inventory(ctx.deps.current_date)
+    current_stock = int(all_inventory.get(resolved, 0))
+
+    return {
+        "item_name": resolved,
+        "unit_price": unit_price,
+        "current_stock": current_stock,
+    }
 
 
 # ── Tools: SalesAgent ─────────────────────────────────────────────────────────
@@ -738,7 +867,28 @@ def fulfill_order_tool(
     Returns:
         Dict with transaction_id, item_name, quantity, total_price.
     """
-    return {"stub": "fulfill_order_tool", "item_name": item_name, "quantity": quantity}
+    resolved = resolve_item_name(item_name)
+    if resolved is None:
+        return {"error": f"Item '{item_name}' not found in catalog."}
+
+    total_price = round(quantity * unit_price, 2)
+
+    # Record the sale in the transactions table
+    transaction_id = create_transaction(
+        item_name=resolved,
+        transaction_type="sales",
+        quantity=quantity,
+        price=total_price,
+        date=ctx.deps.current_date,
+    )
+
+    return {
+        "transaction_id": transaction_id,
+        "item_name": resolved,
+        "quantity": quantity,
+        "unit_price": unit_price,
+        "total_price": total_price,
+    }
 
 
 @sales_agent.tool
@@ -752,7 +902,7 @@ def get_delivery_date_tool(ctx: RunContext[SystemState], quantity: int) -> str:
     Returns:
         ISO date string of estimated delivery.
     """
-    return "[STUB] delivery_date"
+    return get_supplier_delivery_date(ctx.deps.current_date, quantity)
 
 
 @sales_agent.tool
@@ -763,9 +913,16 @@ def get_balance_tool(ctx: RunContext[SystemState]) -> dict:
         ctx: RunContext carrying SystemState (db_engine, current_date).
 
     Returns:
-        Dict with cash_balance and report dict from generate_financial_report().
+        Dict with cash_balance, inventory_value, total_assets, and top_selling_products.
     """
-    return {"stub": "get_balance_tool"}
+    date = ctx.deps.current_date
+    report = generate_financial_report(date)
+    return {
+        "cash_balance": float(report["cash_balance"]),
+        "inventory_value": float(report["inventory_value"]),
+        "total_assets": float(report["total_assets"]),
+        "top_selling_products": report.get("top_selling_products", []),
+    }
 
 
 # ── Discount Helper ───────────────────────────────────────────────────────────
