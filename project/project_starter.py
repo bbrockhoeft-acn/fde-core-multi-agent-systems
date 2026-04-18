@@ -684,22 +684,29 @@ inventory_agent = Agent(
     deps_type=SystemState,
     system_prompt=f"""You are the Inventory Agent for Munder Difflin Paper Company.
 
-Your role: check current stock levels for requested items and, after a sale, \
+Your role: check current stock levels for requested items and, after a sale,
 auto-reorder items that fall below their minimum stock level.
 
-AVAILABLE CATALOG ITEMS (use these exact names in every tool call):
+AVAILABLE CATALOG ITEMS (use ONLY these exact names in every tool call):
 {_CATALOG_NAMES}
 
-BEHAVIOR RULES:
-1. Always call check_inventory_tool before reporting availability for any item.
-2. If the customer's requested quantity exceeds current_stock, include the phrase
-   "INSUFFICIENT STOCK" for that item in your response — do not imply fulfillment
-   is possible.
-3. When asked to perform a post-sale reorder check: call check_inventory_tool for
-   each sold item; if current_stock < min_stock_level, call reorder_tool with
-   quantity = 2 × min_stock_level.
-4. If an item description does not match any catalog entry, state it clearly.
-5. Keep responses factual and concise — downstream agents will use your output.""",
+STOCK CHECK RULES — for every item in the customer request:
+  a. If the item does not appear in the catalog list above:
+       → write "INSUFFICIENT STOCK: [item] — not in our catalog"
+  b. If check_inventory_tool returns an error (item not stocked):
+       → write "INSUFFICIENT STOCK: [item] — not currently stocked"
+  c. If current_stock < requested quantity:
+       → write "INSUFFICIENT STOCK: [item] — only N units available (requested M)"
+  d. If stock is adequate:
+       → write "IN STOCK: [item] — N units available"
+
+Use the exact phrase "INSUFFICIENT STOCK" in ALL cases where an item cannot be
+fully supplied. This phrase is parsed by downstream agents — be consistent.
+
+POST-SALE REORDER CHECK (when instructed after a sale):
+  Call check_inventory_tool for each sold item.
+  If current_stock < min_stock_level, call reorder_tool with quantity = 2 × min_stock_level.
+  Report which items were reordered and their estimated arrival dates.""",
 )
 
 quoting_agent = Agent(
@@ -709,23 +716,41 @@ quoting_agent = Agent(
 
 Your role: generate accurate, detailed price quotes using volume discount tiers.
 
-AVAILABLE CATALOG ITEMS (use these exact names in every tool call):
+AVAILABLE CATALOG ITEMS (use ONLY these exact names in every tool call):
 {_CATALOG_NAMES}
 
-VOLUME DISCOUNT TIERS (applied to the base unit price):
-  Fewer than 100 units  →  0 % (standard price)
+VOLUME DISCOUNT TIERS:
+  Fewer than 100 units  →  0 % (no discount)
   100 – 499 units       →  5 % off
   500 – 999 units       → 10 % off
   1,000 or more units   → 15 % off
 
-BEHAVIOR RULES:
-1. Call get_inventory_price_tool to retrieve the base unit price for each item.
-2. Call search_quote_history_tool with relevant keywords for pricing context.
-3. Apply the correct discount tier based on the requested quantity.
-4. Every quote MUST state: item name, quantity, base unit price, discount tier
-   applied, discounted unit price, and total price (rounded to 2 decimal places).
-5. If inventory context contains "INSUFFICIENT STOCK" for an item, state that the
-   item cannot be quoted at the requested quantity.""",
+DISCOUNT CALCULATION — apply in this exact order:
+  Step 1: Determine tier by checking quantity against these boundaries in order:
+          Is quantity >= 1000?  → 15% off
+          Is quantity >= 500?   → 10% off
+          Is quantity >= 100?   → 5%  off
+          Otherwise             → 0%  off  (only if quantity < 100)
+  Step 2: discounted_unit_price = base_unit_price × (1 − discount_rate)
+  Step 3: line_total = round(quantity × discounted_unit_price, 2)
+
+  Examples (check your own quantities against these):
+    50 units  → < 100            → 0%  off  → A4 $0.05 × 1.00 = $0.0500/unit
+    150 units → >= 100, < 500    → 5%  off  → A4 $0.05 × 0.95 = $0.0475/unit
+    207 units → >= 100, < 500    → 5%  off  → Glossy $0.20 × 0.95 = $0.19/unit
+    401 units → >= 100, < 500    → 5%  off  → Cardstock $0.15 × 0.95 = $0.1425/unit
+    500 units → >= 500, < 1000   → 10% off  → Glossy $0.20 × 0.90 = $0.18/unit
+    1500 units → >= 1000         → 15% off  → A4 $0.05 × 0.85 = $0.0425/unit
+
+QUOTING RULES:
+1. Call get_inventory_price_tool for EACH item before quoting.
+   If it returns an error → do NOT invent a price. State the item cannot be quoted.
+2. Call search_quote_history_tool for context only — it never overrides the tiers above.
+3. Only quote items that are in the CATALOG and returned a valid price from the tool.
+4. If inventory context shows "INSUFFICIENT STOCK" for an item, exclude it from
+   the quote and note it cannot be provided at the requested quantity.
+5. Every quoted item MUST show: catalog name, quantity, base unit price, tier applied
+   (e.g. "5 % — 100–499 units"), discounted unit price, line total (2 decimal places).""",
 )
 
 sales_agent = Agent(
@@ -733,20 +758,29 @@ sales_agent = Agent(
     deps_type=SystemState,
     system_prompt=f"""You are the Sales Agent for Munder Difflin Paper Company.
 
-Your role: finalize confirmed orders — record the transaction, provide delivery
+Your role: finalize confirmed orders — record transactions, provide delivery
 estimates, and report the updated financial balance.
 
-AVAILABLE CATALOG ITEMS (use these exact names in every tool call):
+AVAILABLE CATALOG ITEMS (use ONLY these exact names in every tool call):
 {_CATALOG_NAMES}
 
-BEHAVIOR RULES:
-1. Call fulfill_order_tool using the discounted unit price from the approved quote.
-2. Call get_delivery_date_tool to estimate delivery based on order quantity.
-3. Call get_balance_tool after the sale to surface the updated cash balance.
-4. Your response MUST include: items sold, quantities, total amount charged,
-   estimated delivery date, and updated cash balance.
-5. If the quote or inventory context contains "INSUFFICIENT STOCK", do NOT call
-   fulfill_order_tool — report instead that the order cannot be processed.""",
+FULFILLMENT RULES:
+1. Review the approved quote. It lists ONLY items with valid prices (INSUFFICIENT
+   STOCK items were already excluded by the quoting agent).
+2. Call fulfill_order_tool for EACH item that appears in the approved quote with a
+   valid discounted price. Process them one at a time if there are multiple items.
+   Never invent items or prices not explicitly listed in the approved quote.
+3. If the approved quote contains NO valid priced items, do NOT call
+   fulfill_order_tool at all. Your response MUST include: "No transaction was recorded."
+4. After fulfilling all available items, call get_delivery_date_tool using the
+   total quantity fulfilled, then call get_balance_tool.
+5. LANGUAGE RULE — this is critical:
+   • Use confirmation language ("we have processed your order", "total charged")
+     ONLY for items where fulfill_order_tool was successfully called.
+   • For items not in the approved quote (INSUFFICIENT STOCK), use rejection
+     language in the same response.
+   • If fulfill_order_tool was NOT called at all, use rejection language only —
+     never imply any transaction occurred.""",
 )
 
 orchestrator_agent = Agent(
@@ -754,23 +788,29 @@ orchestrator_agent = Agent(
     deps_type=SystemState,
     system_prompt="""You are the Orchestrator for Munder Difflin Paper Company.
 
-You operate in two modes depending on what you are asked:
-
 MODE 1 — INTENT CLASSIFICATION:
-When asked to classify a request, reply with EXACTLY one of these words and nothing else:
-  inventory_query    (customer asks about stock, availability, or catalog)
-  quote_request      (customer wants a price or quote — no confirmed purchase yet)
-  order_fulfillment  (customer is placing an order, buying, or confirming a purchase)
-  unknown            (intent cannot be determined)
+Reply with EXACTLY one of these words and nothing else:
+  inventory_query    (asking about stock, availability, or what we carry)
+  quote_request      (wants pricing or a quote — no confirmed purchase)
+  order_fulfillment  (placing an order, buying, or confirming a purchase)
+  unknown            (cannot determine intent)
 
 MODE 2 — RESPONSE COMPOSITION:
-When asked to compose a customer reply, write a professional, friendly message that:
-  • States what was quoted or ordered (item names, quantities, prices)
-  • Explains the discount tier applied and why
-  • Includes the delivery estimate for confirmed orders
-  • Gives a clear, polite explanation if anything could not be fulfilled
+Write a professional, friendly reply using the internal context provided.
 
-Never expose internal error messages, stack traces, profit margins, or raw DB fields.""",
+COMPOSITION RULES — follow these strictly:
+1. CONFIRMED SALE: Only use confirmation language if the sale context explicitly
+   states that fulfill_order_tool was called (e.g. transaction ID, total charged,
+   delivery date). If the sale context says "No transaction was recorded" or is
+   blank, write a polite rejection — never a confirmation.
+2. PARTIAL FULFILLMENT: If some items were fulfilled and others were not, clearly
+   separate what was processed from what was declined, with reasons for each.
+3. FULL REJECTION: If inventory shows "INSUFFICIENT STOCK" for all items or the
+   sale context says no transaction occurred, explain which items are unavailable
+   and suggest the customer contact us to adjust their order.
+4. QUOTE ONLY: For quote_request intent, present the pricing with discount tier
+   explained, but do not imply an order has been placed.
+5. Never expose error messages, stack traces, profit margins, or raw DB fields.""",
 )
 
 
@@ -1066,7 +1106,9 @@ class PaperCompanySystem:
             if candidate in raw_intent:
                 intent = candidate
                 break
+        # Store intent as first log entry so callers can inspect it
         state.session_log.append(f"[intent] {intent}")
+        self._last_intent = intent  # surfaced for harness CSV capture
 
         inventory_ctx = quote_ctx = sale_ctx = ""
 
@@ -1090,42 +1132,53 @@ class PaperCompanySystem:
             state.session_log.append(f"[quote] {quote_ctx[:300]}")
 
         # ── Step 4: Sales fulfillment (order intent only) ─────────────────────
+        # No Python-level gate here — the QuotingAgent already excluded
+        # INSUFFICIENT STOCK items from the approved quote, so the SalesAgent
+        # only sees valid priced items. It fulfils what it can and reports
+        # "No transaction was recorded" when nothing is available.
         if intent == "order_fulfillment":
-            if "insufficient stock" in inventory_ctx.lower():
-                sale_ctx = (
-                    "Order could not be fulfilled: one or more requested items "
-                    "have insufficient stock."
-                )
-            else:
-                sale = sales_agent.run_sync(
-                    f"Fulfill this confirmed order:\n{dated_request}"
-                    f"\n\n--- Inventory status ---\n{inventory_ctx}"
-                    f"\n\n--- Approved quote ---\n{quote_ctx}",
-                    deps=state,
-                )
-                sale_ctx = sale.output
-                state.session_log.append(f"[sale] {sale_ctx[:300]}")
+            sale = sales_agent.run_sync(
+                f"Fulfill this confirmed order:\n{dated_request}"
+                f"\n\n--- Inventory status ---\n{inventory_ctx}"
+                f"\n\n--- Approved quote ---\n{quote_ctx}",
+                deps=state,
+            )
+            sale_ctx = sale.output
+            state.session_log.append(f"[sale] {sale_ctx[:300]}")
 
-                # Auto-reorder: check if sold items fell below min_stock_level
-                reorder = inventory_agent.run_sync(
-                    f"A sale was just completed for the following order:\n{dated_request}"
-                    f"\n\nFor each item in that order: call check_inventory_tool, and if "
-                    f"current_stock < min_stock_level, call reorder_tool with "
-                    f"quantity = 2 × min_stock_level.",
-                    deps=state,
-                )
-                reorder_ctx = reorder.output
-                state.session_log.append(f"[reorder] {reorder_ctx[:300]}")
-                if reorder_ctx:
-                    sale_ctx += f"\n\n[Reorder status: {reorder_ctx}]"
+            # Auto-reorder: check if sold items fell below min_stock_level
+            reorder = inventory_agent.run_sync(
+                f"A sale was just completed for the following order:\n{dated_request}"
+                f"\n\nFor each item in that order: call check_inventory_tool, and if "
+                f"current_stock < min_stock_level, call reorder_tool with "
+                f"quantity = 2 × min_stock_level.",
+                deps=state,
+            )
+            reorder_ctx = reorder.output
+            state.session_log.append(f"[reorder] {reorder_ctx[:300]}")
+            if reorder_ctx:
+                sale_ctx += f"\n\n[Reorder status: {reorder_ctx}]"
 
         # ── Step 5: Compose customer-facing response ──────────────────────────
+        # Derive an explicit transaction status so the orchestrator cannot
+        # mistake a quote-only context for a confirmed sale.
+        if intent == "order_fulfillment":
+            if sale_ctx and "no transaction was recorded" not in sale_ctx.lower() \
+                    and "could not be fulfilled" not in sale_ctx.lower() \
+                    and sale_ctx != "Order could not be fulfilled: one or more requested items have insufficient stock.":
+                txn_status = "TRANSACTION STATUS: A sale transaction WAS recorded. Use confirmation language."
+            else:
+                txn_status = "TRANSACTION STATUS: NO transaction was recorded. Use rejection language — do NOT say the order is confirmed."
+        else:
+            txn_status = "TRANSACTION STATUS: Not an order — no transaction expected."
+
         compose_prompt = (
             f"Compose a professional customer-facing response for "
             f"Munder Difflin Paper Company.\n\n"
             f"Customer request: {request}\n"
             f"Request date: {date}\n"
-            f"Intent classified: {intent}\n\n"
+            f"Intent classified: {intent}\n"
+            f"{txn_status}\n\n"
             f"--- Inventory status (internal context) ---\n{inventory_ctx}\n\n"
             f"--- Quote details (internal context) ---\n{quote_ctx}\n\n"
             f"--- Order / sale result (internal context) ---\n{sale_ctx}"
@@ -1187,14 +1240,23 @@ def run_test_scenarios():
         ############
         ############
 
-        response = system.process_request(row["request"], request_date)
+        try:
+            response = system.process_request(row["request"], request_date)
+            intent = getattr(system, "_last_intent", "unknown")
+            error = ""
+        except Exception as e:
+            response = f"[ERROR] {type(e).__name__}: {e}"
+            intent = "error"
+            error = str(e)
+            print(f"  WARNING: request {idx+1} raised {type(e).__name__}: {e}")
 
         # Update state
         report = generate_financial_report(request_date)
         current_cash = report["cash_balance"]
         current_inventory = report["inventory_value"]
 
-        print(f"Response: {response}")
+        print(f"Intent:   {intent}")
+        print(f"Response: {response[:200]}...")
         print(f"Updated Cash: ${current_cash:.2f}")
         print(f"Updated Inventory: ${current_inventory:.2f}")
 
@@ -1202,9 +1264,11 @@ def run_test_scenarios():
             {
                 "request_id": idx + 1,
                 "request_date": request_date,
-                "cash_balance": current_cash,
-                "inventory_value": current_inventory,
+                "intent": intent,
+                "cash_balance": round(current_cash, 2),
+                "inventory_value": round(current_inventory, 2),
                 "response": response,
+                "error": error,
             }
         )
 
