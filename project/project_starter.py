@@ -1190,7 +1190,16 @@ class PaperCompanySystem:
 # Run your test scenarios by writing them here. Make sure to keep track of them.
 
 def run_test_scenarios():
-    
+    """Run all 20 scenarios from quote_requests_sample.csv through the multi-agent pipeline.
+
+    Initialises a fresh database, processes each request row in chronological order,
+    captures the intent classification and any exceptions per row, and writes the full
+    results to test_results.csv.  Prints a financial summary to stdout on completion.
+
+    Returns:
+        list[dict]: One dict per request with keys request_id, request_date, intent,
+                    cash_balance, inventory_value, response, and error.
+    """
     print("Initializing Database...")
     init_database(db_engine)
     try:
