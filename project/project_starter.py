@@ -813,6 +813,43 @@ COMPOSITION RULES — follow these strictly:
 5. Never expose error messages, stack traces, profit margins, or raw DB fields.""",
 )
 
+upsell_agent = Agent(
+    model=_model,
+    deps_type=SystemState,
+    system_prompt=f"""You are the Upsell Agent for Munder Difflin Paper Company.
+
+Your role: after a customer request has been processed, suggest 1-3 complementary
+catalog items the customer did NOT already request — grounded in real sales data
+and historical quote context, not guesswork.
+
+AVAILABLE CATALOG ITEMS (suggest ONLY items from this list — never invent names):
+{_CATALOG_NAMES}
+
+STEPS:
+1. Call get_top_sellers_tool to see which items are generating the most revenue.
+2. Call upsell_search_quotes_tool with 1-2 keywords from the customer's event type
+   or job context (e.g., "ceremony", "conference", "marketing", "party") to find
+   what similar customers have ordered.
+3. From these signals, choose 1-3 items that:
+   a. Appear in the catalog list above
+   b. Are NOT already mentioned in the customer's current order or quote context
+   c. Are logically complementary — e.g., Presentation folders with glossy paper,
+      Paper cups with Paper plates, Sticky notes with Notepads, Flyers with Poster paper
+
+OUTPUT FORMAT — write a short, friendly section with no prices:
+  You may also be interested in:
+  • [Exact catalog item name] — [one sentence: why it fits their event or order]
+  • ...
+
+RULES:
+- Use ONLY exact item names from the catalog list above. Never invent or paraphrase.
+- Do NOT mention prices, discounts, or delivery dates — those belong to other agents.
+- Do NOT suggest any item the customer already requested or that appears in the quote.
+- Maximum 3 suggestions. If context is too thin, give 1 best-seller recommendation.
+- If the request was fully rejected (nothing ordered), frame suggestions as alternatives
+  the customer may wish to explore instead.""",
+)
+
 
 # ── Tools: InventoryAgent ─────────────────────────────────────────────────────
 
@@ -1039,6 +1076,49 @@ def get_balance_tool(ctx: RunContext[SystemState]) -> dict:
     }
 
 
+# ── Tools: UpsellAgent ───────────────────────────────────────────────────────
+
+@upsell_agent.tool
+def get_top_sellers_tool(ctx: RunContext[SystemState]) -> list:
+    """Return the top 5 best-selling catalog items by revenue as of the current date.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+
+    Returns:
+        List of dicts with item_name, total_units, and total_revenue fields.
+    """
+    query = """
+        SELECT item_name,
+               SUM(units)  AS total_units,
+               SUM(price)  AS total_revenue
+        FROM   transactions
+        WHERE  transaction_type = 'sales'
+          AND  item_name IS NOT NULL
+          AND  transaction_date <= :date
+        GROUP BY item_name
+        ORDER BY total_revenue DESC
+        LIMIT 5
+    """
+    result = pd.read_sql(query, ctx.deps.db_engine, params={"date": ctx.deps.current_date})
+    return result.to_dict(orient="records")
+
+
+@upsell_agent.tool
+def upsell_search_quotes_tool(ctx: RunContext[SystemState], search_terms: str) -> list:
+    """Retrieve historical quotes matching search terms to ground upsell suggestions.
+
+    Args:
+        ctx: RunContext carrying SystemState (db_engine, current_date).
+        search_terms: Space-separated keywords (e.g., event type or job context).
+
+    Returns:
+        List of matching quote dicts (original_request, total_amount, etc.).
+    """
+    terms = [t.strip() for t in search_terms.split() if t.strip()]
+    return search_quote_history(terms, limit=5)
+
+
 # ── Discount Helper ───────────────────────────────────────────────────────────
 
 def calculate_discount(quantity: int) -> float:
@@ -1184,7 +1264,29 @@ class PaperCompanySystem:
             f"--- Order / sale result (internal context) ---\n{sale_ctx}"
         )
         final = orchestrator_agent.run_sync(compose_prompt, deps=state)
-        return final.output
+        final_response = final.output
+
+        # ── Step 6: Upsell pitch (quote and order intents only) ──────────────
+        # Fires after the main response is composed so it never interferes with
+        # the transaction/rejection logic.  Advisory only — no tools that write DB.
+        if intent in ("order_fulfillment", "quote_request"):
+            upsell_prompt = (
+                f"A customer request has just been processed.\n"
+                f"Customer request: {request}\n"
+                f"Date: {date}\n\n"
+                f"--- Items already discussed (do NOT suggest these again) ---\n"
+                f"{quote_ctx if quote_ctx else inventory_ctx}\n\n"
+                f"Call get_top_sellers_tool first to see what sells best, then "
+                f"suggest 1-3 complementary catalog items the customer has NOT "
+                f"already asked about."
+            )
+            upsell = upsell_agent.run_sync(upsell_prompt, deps=state)
+            upsell_ctx = upsell.output.strip()
+            state.session_log.append(f"[upsell] {upsell_ctx[:200]}")
+            if upsell_ctx:
+                final_response += f"\n\n---\n{upsell_ctx}"
+
+        return final_response
 
 
 # Run your test scenarios by writing them here. Make sure to keep track of them.

@@ -3,35 +3,31 @@ title: Munder Difflin Paper Company - Multi-Agent System
 ---
 %%{init: {'theme': 'base', 'themeVariables': {'background': '#ffffff', 'primaryColor': '#ffffff', 'primaryTextColor': '#333333', 'lineColor': '#6b7280'}}}%%
 
-flowchart TD
+flowchart LR
 
     %% ── I/O ──────────────────────────────────────────────────────────────
-    REQ(["Customer Request"])
-    RESP(["Customer Response"])
+    REQ(["Customer<br/>Request"])
+    RESP(["Customer<br/>Response"])
 
     REQ --> ORCH_NODE
 
-    %% ── AGENT 1: Orchestrator ────────────────────────────────────────────
-    subgraph ORCH_SG["OrchestratorAgent — Intent Classification & Reply Composition"]
-        ORCH_NODE["LLM classifies intent:<br/>inventory_query<br/>quote_request<br/>order_fulfillment<br/>─────────────────<br/>Sequences sub-agents<br/>Composes customer reply"]
+    %% ── AGENT 1: Orchestrator (left hub) ─────────────────────────────────
+    subgraph ORCH_SG["OrchestratorAgent"]
+        ORCH_NODE["Step 1: Classify intent<br/>─────────────────<br/>Step 5: Compose reply<br/>Step 6: Dispatch upsell"]
     end
-
-    ORCH_NODE -->|"all intents"| INV_NODE
 
     %% ── AGENT 2: Inventory ───────────────────────────────────────────────
     subgraph INV_SG["InventoryAgent — Stock Queries & Auto-Reorder"]
-        INV_NODE["Stock Manager"]
+        INV_NODE["Stock<br/>Manager"]
         INV_T1["check_inventory_tool<br/>Purpose: query current stock levels<br/>Helpers: get_all_inventory, get_stock_level"]
         INV_T2["reorder_tool  auto if stock below min<br/>Purpose: place supplier stock order<br/>Helpers: create_transaction, get_supplier_delivery_date"]
         INV_NODE --> INV_T1
         INV_NODE --> INV_T2
     end
 
-    INV_NODE -->|"quote_request<br/>order_fulfillment"| QT_NODE
-
     %% ── AGENT 3: Quoting ─────────────────────────────────────────────────
     subgraph QT_SG["QuotingAgent — Pricing & Volume Discounts"]
-        QT_NODE["Quote Generator"]
+        QT_NODE["Quote<br/>Generator"]
         QT_T1["search_quote_history_tool  context only<br/>Purpose: retrieve precedent quotes<br/>Helper: search_quote_history"]
         QT_T2["get_inventory_price_tool<br/>Purpose: unit price and available quantity<br/>Helper: get_all_inventory"]
         QT_DISC["Volume Discount Tiers<br/>Less than 100 units: 0%<br/>100 to 499 units: 5%<br/>500 to 999 units: 10%<br/>1000 or more units: 15%"]
@@ -40,11 +36,9 @@ flowchart TD
         QT_NODE --> QT_DISC
     end
 
-    QT_NODE -->|"order_fulfillment"| SALE_NODE
-
     %% ── AGENT 4: Sales ───────────────────────────────────────────────────
     subgraph SALE_SG["SalesAgent — Transaction Processing & Delivery"]
-        SALE_NODE["Order Fulfillment"]
+        SALE_NODE["Order<br/>Fulfillment"]
         SALE_T1["fulfill_order_tool<br/>Purpose: record completed sale<br/>Helper: create_transaction"]
         SALE_T2["get_delivery_date_tool<br/>Purpose: customer delivery estimate<br/>Helper: get_supplier_delivery_date"]
         SALE_T3["get_balance_tool<br/>Purpose: post-sale financial audit<br/>Helpers: get_cash_balance, generate_financial_report"]
@@ -53,15 +47,32 @@ flowchart TD
         SALE_NODE --> SALE_T3
     end
 
-    %% ── Return paths to Orchestrator ─────────────────────────────────────
+    %% ── AGENT 5: Upsell ─────────────────────────────────────────────────
+    subgraph UP_SG["UpsellAgent — Complementary Product Suggestions (Step 6)"]
+        UP_NODE["Upsell<br/>Advisor"]
+        UP_T1["get_top_sellers_tool<br/>Purpose: top 5 items by revenue<br/>Helper: transactions table query"]
+        UP_T2["upsell_search_quotes_tool<br/>Purpose: similar event quote context<br/>Helper: search_quote_history"]
+        UP_NODE --> UP_T1
+        UP_NODE --> UP_T2
+    end
+
+    %% ── Forward pipeline (left to right) ────────────────────────────────
+    ORCH_NODE -->|"all intents"| INV_NODE
+    INV_NODE  -->|"quote_request<br/>order_fulfillment"| QT_NODE
+    QT_NODE   -->|"order_fulfillment"| SALE_NODE
+
+    %% ── Return paths back to Orchestrator ────────────────────────────────
     INV_SG  -->|"stock status"| ORCH_NODE
     QT_SG   -->|"quote + discount rationale"| ORCH_NODE
     SALE_SG -->|"order confirmation + ETA"| ORCH_NODE
 
     %% ── Auto-reorder loop after sale ─────────────────────────────────────
-    SALE_NODE -->|"post-sale: if stock below min"| INV_NODE
+    SALE_NODE -->|"post-sale reorder"| INV_NODE
 
-    ORCH_NODE --> RESP
+    %% ── Final output paths ───────────────────────────────────────────────
+    ORCH_NODE -->|"Step 5: compose reply"| RESP
+    ORCH_NODE -->|"Step 6: quote and order intents"| UP_NODE
+    UP_SG     -->|"pitch appended to reply"| RESP
 
     %% ── Shared SQLite database ───────────────────────────────────────────
     DB[("SQLite Database<br/>munder_difflin.db<br/>─────────────────<br/>transactions<br/>inventory<br/>quotes")]
@@ -73,12 +84,15 @@ flowchart TD
     SALE_T1 -. "write" .-> DB
     SALE_T2 -. "read" .-> DB
     SALE_T3 -. "read" .-> DB
+    UP_T1   -. "read" .-> DB
+    UP_T2   -. "read" .-> DB
 
     %% ── Subgraph background colors (one per agent) ───────────────────────
     style ORCH_SG fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95
     style INV_SG  fill:#f0fdf4,stroke:#16a34a,color:#14532d
     style QT_SG   fill:#fffbeb,stroke:#d97706,color:#78350f
     style SALE_SG fill:#eff6ff,stroke:#2563eb,color:#1e3a8a
+    style UP_SG   fill:#fff1f2,stroke:#e11d48,color:#881337
 
     %% ── Node styles ──────────────────────────────────────────────────────
     classDef agentNode  fill:#ffffff,stroke:#6b7280,color:#111827,font-weight:bold
@@ -87,8 +101,8 @@ flowchart TD
     classDef dbNode     fill:#faf5ff,stroke:#9333ea,color:#6b21a8
     classDef discNode   fill:#fffbeb,stroke:#d97706,color:#78350f
 
-    class ORCH_NODE,INV_NODE,QT_NODE,SALE_NODE agentNode
-    class INV_T1,INV_T2,QT_T1,QT_T2,SALE_T1,SALE_T2,SALE_T3 toolNode
+    class ORCH_NODE,INV_NODE,QT_NODE,SALE_NODE,UP_NODE agentNode
+    class INV_T1,INV_T2,QT_T1,QT_T2,SALE_T1,SALE_T2,SALE_T3,UP_T1,UP_T2 toolNode
     class REQ,RESP ioNode
     class DB dbNode
     class QT_DISC discNode

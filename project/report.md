@@ -10,14 +10,16 @@
 
 ### Agent Workflow Overview
 
-The system is built around four specialized agents orchestrated by a central coordinator (see `diagram.svg`). All agents are implemented using the **pydantic-ai** framework, which was selected for its clean type-safe tool definitions, native `RunContext` dependency injection, and straightforward `agent.run_sync()` invocation pattern. Each agent holds a shared `SystemState` dataclass through the `RunContext`, giving every tool access to the SQLite database engine and the current request date without requiring global state.
+The system is built around **five specialized agents** orchestrated by a central coordinator (see `diagram.svg`). All agents are implemented using the **pydantic-ai** framework, which was selected for its clean type-safe tool definitions, native `RunContext` dependency injection, and straightforward `agent.run_sync()` invocation pattern. Each agent holds a shared `SystemState` dataclass through the `RunContext`, giving every tool access to the SQLite database engine and the current request date without requiring global state.
 
 ```
 Customer Request → OrchestratorAgent → InventoryAgent
-                                      → QuotingAgent (quote/order intents)
-                                      → SalesAgent   (order intent only)
+                                      → QuotingAgent  (quote/order intents)
+                                      → SalesAgent    (order intent only)
                                       ← all agents return structured context
-                 → OrchestratorAgent composes final reply → Customer Response
+                 → OrchestratorAgent composes final reply  [Step 5]
+                 → UpsellAgent appends complementary pitch [Step 6]
+                 → Customer Response
 ```
 
 ### Agent Roles
@@ -29,6 +31,8 @@ Customer Request → OrchestratorAgent → InventoryAgent
 **QuotingAgent** generates accurate, itemized price quotes using the volume discount tier table. It exposes two tools: `get_inventory_price_tool` (retrieves unit price and current stock) and `search_quote_history_tool` (retrieves similar historical quotes for pricing context). The agent is instructed to apply discount tiers in a specific top-down order (≥1000 → ≥500 → ≥100 → otherwise) to prevent boundary errors.
 
 **SalesAgent** finalizes confirmed orders by calling `fulfill_order_tool` (wraps `create_transaction('sales')`), then `get_delivery_date_tool`, and finally `get_balance_tool` for a post-sale financial audit. It is instructed to process only items that appear in the approved quote (items already excluded for insufficient stock are never passed for fulfillment), enabling correct partial-order handling within a single response.
+
+**UpsellAgent** (5th agent — optional enhancement) runs as Step 6 after the orchestrator has composed its reply, adding a personalized "You may also be interested in" section to `quote_request` and `order_fulfillment` responses. It calls `get_top_sellers_tool` (queries the transactions table for the top 5 revenue-generating items) and `upsell_search_quotes_tool` (retrieves historical quotes for similar events via `search_quote_history`), then suggests 1–3 complementary catalog items the customer did not already request. The agent is strictly advisory — it never calls `fulfill_order_tool` and performs no database writes, so it carries zero financial risk.
 
 ### Key Architectural Decision — `txn_status` Signal
 
@@ -46,6 +50,7 @@ This deterministic Python signal takes the ambiguity out of the LLM's hands and 
 3. **Generate quote** — QuotingAgent (`quote_request` and `order_fulfillment` intents)
 4. **Fulfill order** — SalesAgent (`order_fulfillment` only); followed by auto-reorder pass
 5. **Compose reply** — OrchestratorAgent (MODE 2) with injected `txn_status`
+6. **Upsell pitch** — UpsellAgent (`quote_request` and `order_fulfillment` intents); output appended to final response
 
 ### Date Integrity
 
@@ -91,9 +96,9 @@ Cash balance changed in **14 of 20 requests** (initial balance: $45,059.70; fina
 
 Replace the LLM's discount arithmetic with a dedicated `calculate_quote_tool` that calls the Python `calculate_discount()` function directly and returns the computed unit prices as structured data. The QuotingAgent would then format the already-computed figures rather than performing the calculation itself. This eliminates the boundary-case tier errors observed in R4, R6, and R18, making pricing deterministic and auditable regardless of LLM behavior. The tradeoff is a slightly more constrained agent interaction — the LLM loses the ability to reason about pricing exceptions — but this is an acceptable loss given that the discount table is a business rule, not a judgment call.
 
-### Suggestion 2 — Upsell / Sales Pitch Agent (5th Agent)
+### Suggestion 2 — Upsell / Sales Pitch Agent (5th Agent) ✅ Implemented
 
-Add a dedicated `upsell_agent` that runs after the orchestrator composes the customer reply (Step 6). Given the order or quote context and the customer's event type, the agent suggests 1–3 complementary catalog items the customer did not request — for example, suggesting Presentation folders and Flyers to a customer who ordered glossy paper for a marketing event. The agent would use `search_quote_history_tool` to anchor suggestions in what similar events historically ordered, and a `get_top_sellers_tool` backed by the transactions table to surface high-revenue items. This approach adds genuine commercial value with minimal implementation cost (one new agent, two tools, one additional `run_sync` call) and no transaction risk — the upsell agent is advisory only.
+A dedicated `upsell_agent` runs as Step 6 after the orchestrator composes the customer reply. Given the order or quote context and the customer's event type, the agent suggests 1–3 complementary catalog items the customer did not request — for example, suggesting Presentation folders and Flyers to a customer who ordered glossy paper for a marketing event. It calls `get_top_sellers_tool` (backed by the transactions table) to anchor suggestions in real revenue data, and `upsell_search_quotes_tool` (backed by `search_quote_history`) to find what similar events historically ordered. The agent is strictly read-only, carrying no transaction risk. This pattern scales naturally — the same Step 6 slot could host a more sophisticated recommendation engine (e.g., collaborative filtering) without changes to the rest of the pipeline.
 
 ### Suggestion 3 — Reorder Guard (Transaction-ID Check)
 

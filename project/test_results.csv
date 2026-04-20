@@ -1,381 +1,517 @@
 request_id,request_date,intent,cash_balance,inventory_value,response,error
-1,2025-04-01,quote_request,45059.7,4940.3,"Subject: Quote Request for Paper Supplies
+1,2025-04-01,quote_request,45059.7,4940.3,"Dear Customer,
 
-Dear Customer,
+Thank you for your request for paper supplies for the ceremony. Below is the price quote for your requested items:
 
-Thank you for your request for paper supplies for the ceremony. Below is the quote for the items you specified:
-
-1. **A4 Glossy Paper**
+1. **Glossy paper**
    - Quantity: 200 sheets
-   - Discounted Unit Price: $0.0475
-   - Line Total: $9.50
+   - Base unit price: $0.20
+   - Tier applied: 5% discount — 100–499 units
+   - Discounted unit price: $0.19
+   - Line total: $38.00
 
-2. **Heavy Cardstock (White)**
+2. **Cardstock**
    - Quantity: 100 sheets
-   - Unfortunately, this item is currently out of stock and cannot be fulfilled.
+   - Base unit price: $0.15
+   - Tier applied: 5% discount — 100–499 units
+   - Discounted unit price: $0.1425
+   - Line total: $14.25
 
-3. **Colored Paper (Assorted Colors)**
+3. **Colored paper**
    - Quantity: 100 sheets
-   - Discounted Unit Price: $0.095
-   - Line Total: $9.50
+   - Base unit price: $0.10
+   - Tier applied: 5% discount — 100–499 units
+   - Discounted unit price: $0.095
+   - Line total: $9.50
 
 ### Summary of Quote:
-- A4 Glossy Paper: 200 sheets → $9.50
-- (Heavy Cardstock): Not available
-- Colored Paper: 100 sheets → $9.50
+- **Glossy paper**: 200 sheets - $38.00
+- **Cardstock**: 100 sheets - $14.25
+- **Colored paper**: 100 sheets - $9.50
 
-**Total Amount:** $19.00
-*Please note that the heavy cardstock (white) cannot be provided due to insufficient stock.*
+### Total Amount:
+- **Overall Total**: $61.75
 
-Your supplies can be delivered by April 15, 2025. If you would like to proceed with the order or make any adjustments, please let us know!
+Please note that ""A4 glossy paper"" and ""heavy cardstock (white)"" are not in our catalog. If you would like to adjust your request or need further assistance, please let me know! Your supplies will be prepared for delivery by April 15, 2025.
 
-Thank you for considering Munder Difflin Paper Company for your needs.
+Thank you!
+
+Best regards,  
+[Your Name]  
+Munder Difflin Paper Company
+
+---
+You may also be interested in:
+  • Envelopes — These can be a great addition for any invitations or information you might want to send out for your ceremony.
+  • Presentation folders — Perfect for organizing your materials and giving a professional touch to any documents you'll have at the event.
+  • Heavyweight paper — This can add a touch of quality to any signage or materials you might need for your ceremony.",
+2,2025-04-03,order_fulfillment,45059.7,4940.3,"Thank you for your request to place an order for supplies for the parade. Unfortunately, we were unable to process your order as none of the requested items are available:
+
+- Colorful poster paper: Not in our catalog.
+- Party streamers: Currently not stocked.
+- Balloons: Not in our catalog.
+
+If you would like to modify your request to include different items, please let us know, or if you have any other questions. We're here to help!
+
+---
+You may also be interested in:
+  • Crepe paper — Perfect for adding colorful decorations to your parade setup!
+  • Glitter paper — A fun way to make your parade materials sparkle and stand out!
+  • Standard copy paper — Great for printing materials or handouts during the parade.",
+3,2025-04-04,order_fulfillment,45046.2,4953.8,"Dear Customer,
+
+Thank you for your request regarding your order for paper supplies. Unfortunately, we are unable to fulfill your order at this time due to the following reasons:
+
+1. **A4 paper**: While we have 272 units available, your request for 10,000 sheets exceeds our stock. However, we can fulfill 270 units of A4 paper, which will arrive by April 8, 2025.
+2. **A3 paper**: This item is not available in our catalog, so we cannot fulfill your request for it.
+3. **Printer paper**: Similarly, this item is not part of our offerings, and therefore not available for order.
+
+Please consider revising your order with items from our catalog. If you need further assistance or alternative options, feel free to reach out.
 
 Best regards,
 
 [Your Name]  
-Munder Difflin Paper Company",
-2,2025-04-03,order_fulfillment,45059.7,4940.3,"Subject: Order Update
+Munder Difflin Paper Company
+
+---
+You may also be interested in:
+  • Presentation folders — These can help you organize and present materials for your conference effectively.
+  • Name tags with lanyards — A great way to enhance networking during the conference and ensure everyone is easily identifiable.
+  • Envelopes — Perfect for distributing conference materials or important documents to attendees.",
+4,2025-04-05,order_fulfillment,45046.2,4953.8,"Thank you for your request for 500 sheets of high-quality, recycled cardstock in various colors and 250 sheets of A4 size printer paper.
+
+Unfortunately, we currently do not have recycled cardstock available in our catalog, which prevents us from fulfilling that part of your order. However, we do have the A4 printer paper in stock. Here are the details for your request:
+
+**A4 Paper:**
+- **Quantity:** 250 sheets
+- **Unit Price:** $0.05
+- **Discounted Unit Price:** $0.0475 (5% discount applied)
+- **Total:** $11.88
+
+If you would like to proceed with the A4 paper order or make adjustments to your request, please let me know, and I would be happy to assist! Thank you for considering Munder Difflin Paper Company!
+
+---
+You may also be interested in:
+  • **Glossy paper** — This is perfect for creating beautiful, high-quality prints that will stand out at your reception.
+  • **Table covers** — These can add a decorative touch to your event while keeping tables clean and presentable. 
+  • **Paper napkins** — Essential for any reception, these will complement your setup by adding convenience and style.",
+5,2025-04-05,order_fulfillment,45060.05,4932.7,"Dear Customer,
+
+Thank you for your order! We have successfully processed your request for the following items:
+
+- **Colored Paper**: 500 sheets at a discounted price of $0.09 per sheet. Total: $45.00
+- **Cardstock**: 300 sheets at a discounted price of $0.1425 per sheet. Total: $42.75
+
+**Total Amount Charged:** $87.75
+
+We are pleased to inform you that your items will be delivered by **April 9, 2025**.
+
+Unfortunately, the decorative washi tape you requested is currently out of stock. If you would like to explore alternative options or if you have any other requests, please let me know!
+
+Thank you once again for choosing Munder Difflin Paper Company. If you have any further questions, feel free to reach out.
+
+Best regards,
+
+[Your Name]  
+Munder Difflin Paper Company
+
+---
+You may also be interested in:
+
+- **Paper plates** — These would be a great addition to your party supplies, perfect for serving food and snacks.
+- **Paper cups** — Complement your paper plates with coordinated cups to make beverage service easy and stylish.
+- **Paper napkins** — Adding some decorative napkins would enhance the overall presentation at your party.
+
+Let me know if you'd like to add any of these items to your order!",
+6,2025-04-06,order_fulfillment,45120.95,4866.8,"Dear Customer,
+
+Thank you for your order! We have successfully processed your request for the following items:
+
+- **Colored paper**: 500 sheets - Total: **$45.00** (Transaction ID: 22)
+- **Cardstock**: 200 sheets - Total: **$30.00** (Transaction ID: 21)
+
+The total charged for your order is **$75.00**, and we are pleased to inform you that your order will be delivered by **April 10, 2025**.
+
+However, we regret to inform you that we do not currently stock white printer paper (standard copy paper), and we are unable to fulfill that part of your request. If you would like to adjust your order or have any further questions, please feel free to reach out!
+
+Thank you for choosing Munder Difflin Paper Company.
+
+Best regards,  
+[Your Name]  
+Munder Difflin Paper Company
+
+---
+You may also be interested in:
+  • **Presentation folders** — Perfect for organizing materials and handouts for your assembly participants.
+  • **Envelopes** — Great for distributing individual notes or schedules during the assembly.
+  • **Sticky notes** — Handy for jotting down quick reminders or messages during planning for the assembly.",
+7,2025-04-07,order_fulfillment,45120.95,4866.8,"Subject: Order Request for Paper Supplies
 
 Dear [Customer's Name],
 
-Thank you for your recent request to place an order for supplies for the parade. Unfortunately, we cannot fulfill your order as listed, as all specified items are either not in our catalog or currently out of stock. Here’s a summary of the inventory status:
+Thank you for reaching out to Munder Difflin Paper Company regarding your upcoming exhibition and your order for various paper supplies. 
 
-- **Colorful poster paper**: Not in our catalog
-- **Roll of streamers**: Currently out of stock
-- **Balloons**: Not in our catalog
+After reviewing your request for the following items:
 
-We apologize for any inconvenience this may cause. If you would like to explore our available items or consider an alternative order, please don't hesitate to reach out. We’d be happy to assist you!
+- 500 sheets of glossy A4 paper
+- 1000 sheets of matte A3 paper
+- 300 poster boards (24"" x 36"")
+- 200 sheets of heavyweight cardstock
+
+I regret to inform you that we cannot fulfill your order as all requested items are either insufficient in stock or not currently stocked. Here's a summary of the status for your requested items:
+
+- **Glossy A4 paper**: We have 587 sheets available, which is sufficient for your request.
+- **Matte A3 paper**: Not currently stocked.
+- **Poster boards (24"" x 36"")**: Not currently stocked.
+- **Heavyweight cardstock**: Not currently stocked.
+
+Please consider adjusting your order or selecting alternative items from our available catalog. I would be happy to assist you in generating a quote for those alternatives.
+
+Thank you for your understanding, and I look forward to your response.
 
 Best regards,
 
 [Your Name]  
-Munder Difflin Paper Company",
-3,2025-04-04,order_fulfillment,45046.2,4953.8,"Thank you for your request regarding your order of 10,000 sheets of A4 paper, 5,000 sheets of A3 paper, and 500 reams of printer paper. 
+Munder Difflin Paper Company  
+[Your Contact Information]  
 
-I regret to inform you that we are unable to fulfill your order due to current stock levels and catalog availability. Specifically:
+---
+You may also be interested in:
+  • Recycled paper — This eco-friendly option aligns perfectly with exhibitions focused on sustainability and offers a reliable choice for various printing needs.
+  • Construction paper — Great for creative displays or hands-on activities during your exhibition, allowing you to engage your audience with vibrant colors.
+  • Envelopes — Perfect for presentations or distributing brochures at your exhibition, ensuring your materials are well-organized and professional.",
+8,2025-04-07,order_fulfillment,45211.95,4765.8,"Dear Customer,
 
-- **A4 paper:** We currently have only 272 units available (against your request for 10,000).
-- **A3 paper:** Unfortunately, this item is not in our catalog.
-- **Printer paper:** This item is also not available in our catalog.
+Thank you for your order with Munder Difflin Paper Company! We have successfully processed your request for paper supplies for your upcoming ceremony. Here are the details of your order:
 
-As such, we are unable to confirm any delivery schedule for the requested items. If you would like assistance with alternative products or any further inquiries, please let me know. I'm here to help!",
-4,2025-04-05,order_fulfillment,45032.7,4967.3,"Dear Customer,
+- **A4 Glossy Paper:** 500 sheets for $90.00
+- **A4 Paper:** 500 sheets for $25.00
 
-Thank you for reaching out to Munder Difflin Paper Company regarding your order for high-quality, recycled cardstock and A4 size printer paper.
+**Total charged:** $115.00
 
-I regret to inform you that we do not have the recycled cardstock available in our catalog, so I cannot fulfill that part of your request. However, we do have A4 printer paper in stock. Here are the details for that:
+Your order will be delivered by **April 11, 2025**.
 
-- Quantity: 250 sheets
-- Base unit price: $0.05
-- Discount applied: 10% (for 100–499 units)
-- Discounted unit price: $0.045
-- Line total: $11.25
+Please note that we were unable to fulfill the following items due to insufficient stock or because they are not part of our current catalog:
 
-While I cannot proceed with your order as requested, I do have 542 units of the A4 paper available. If you would like to proceed with an order of A4 paper or if you are looking for alternative options for cardstock, please let me know.
+- **A4 Matte Paper:** Not currently stocked
+- **A5 Colored Paper:** Not in our catalog
+- **A4 Recycled Paper:** Not currently stocked
 
-Thank you for your understanding, and I look forward to assisting you further!
+If you would like to modify your order or replace the unavailable items, please let me know! 
+
+Thank you for choosing Munder Difflin Paper Company. If you need further assistance, feel free to reach out.
 
 Best regards,  
 [Your Name]  
-Munder Difflin Paper Company",
-5,2025-04-05,order_fulfillment,45046.55,4946.2,"Dear Customer,
+Munder Difflin Paper Company
 
-Thank you for your recent order! We are pleased to confirm that we have successfully processed your request for the following items:
+---
+You may also be interested in:
+  • Cardstock — This high-quality cardstock is perfect for creating durable and professional-looking materials for your ceremony.
+  • Envelopes — Consider adding envelopes to your order for invitations or programs, ensuring a polished presentation.
+  • Presentation folders — These are great for organizing and presenting documents at your ceremony, giving a professional touch to your materials.",
+9,2025-04-07,order_fulfillment,45205.95,4770.8,"Dear Customer,
 
-1. **Colored Paper**
-   - Quantity: 500 sheets
-   - Total Charged: $45.00
+Thank you for your recent order with Munder Difflin Paper Company. I am pleased to confirm that we have processed your order for 100 sheets of glossy paper for a total of $19.00. The estimated delivery date for this item is April 8, 2025.
 
-2. **Cardstock**
-   - Quantity: 300 sheets
-   - Total Charged: $42.75
+Unfortunately, I must inform you that we were unable to fulfill your requests for the A4 white printer paper and the 100% recycled kraft paper envelopes due to insufficient stock. Specifically, we have only 42 sheets of A4 paper available and currently do not have any packets of kraft paper envelopes in stock.
 
-**Total Amount:** $87.75
+To accommodate your needs, I have reordered the following items:
+- **A4 paper**: 180 units (estimated arrival: April 11, 2025)
+- **Glossy paper**: 80 units (estimated arrival: April 8, 2025)
 
-Your order is scheduled to be delivered on **April 9, 2025**.
+If you would like to adjust your order or if you have any further questions, please do not hesitate to reach out. 
 
-Please note that we currently do not have decorative washi tape in stock and, unfortunately, we are unable to fulfill that part of your order. If you would like to consider alternatives or adjust your order, please don't hesitate to let us know.
+Thank you for choosing Munder Difflin!
 
-If you have any further questions or need assistance, feel free to reach out. Thank you for choosing Munder Difflin Paper Company!
-
-Best regards,
-
+Best regards,  
 [Your Name]  
-Munder Difflin Paper Company",
-6,2025-04-06,order_fulfillment,45107.45,4880.3,"Dear Customer,
+Munder Difflin Paper Company
 
-Thank you for your recent order with Munder Difflin Paper Company! We have successfully processed your order for the following items:
-
-1. **Colored Paper**: 500 sheets at a discounted price of $0.09 per sheet. Total: $45.00
-2. **Cardstock**: 200 sheets at the price of $0.15 per sheet. Total: $30.00
-
-Your total charge is **$75.00**.
-
-Please note that we were unable to fulfill your request for white printer paper (Standard copy paper) as it is not currently in stock. 
-
-The estimated delivery date for your supplies is **April 10, 2025**. 
-
-If you have any further questions or if there’s anything else we can assist you with, please feel free to reach out.
-
-Thank you once again for choosing us for your paper supply needs!
-
-Best regards,
-
-Munder Difflin Paper Company",
-7,2025-04-07,order_fulfillment,45458.45,4504.3,"Dear Customer,
-
-Thank you for your order with Munder Difflin Paper Company! We are pleased to confirm your purchase of the following items for your upcoming exhibition:
-
-- **Glossy A4 paper**: 500 sheets — **$90.00**
-- **Large poster paper (24x36 inches)**: 300 sheets — **$285.00**
-
-The total amount charged for your order is **$375.00**. Your supplies are estimated to be delivered by **April 11, 2025**.
-
-Please note that we are unable to fulfill your request for the matte A3 paper and heavyweight cardstock due to insufficient stock. If you have any alternative requests or need assistance with adjusting your order, feel free to reach out.
-
-We appreciate your business and look forward to serving you!
-
-Best regards,
-
-[Your Name]  
-Munder Difflin Paper Company",
-8,2025-04-07,order_fulfillment,45548.45,4404.3,"Dear Customer,
-
-Thank you for your recent order with Munder Difflin Paper Company. We appreciate your business!
-
-We have successfully processed your order for the following item:
-
-- **A4 Glossy Paper**: 500 sheets at a discounted price of $0.18 per sheet. Your total for this item is **$90.00**, and we have charged this amount accordingly.
-
-Your estimated delivery date is **April 11, 2025**. 
-
-Unfortunately, we were unable to fulfill the entire order as requested due to insufficient stock and unavailable items. The items that could not be processed include:
-
-- **A4 Matte Paper**: Insufficient Stock
-- **A5 Colored Paper**: Not available in our catalog
-- **A4 Recycled Paper**: Insufficient Stock
-
-If you'd like to adjust your order or select different items that are in stock, please let us know, and we’d be happy to assist you further.
-
-Thank you for choosing Munder Difflin, and we look forward to serving you again soon!
-
-Best regards,
-
-[Your Name]  
-Munder Difflin Paper Company",
-9,2025-04-07,order_fulfillment,45508.65,4443.1,"Subject: Order Confirmation and Update
+---
+You may also be interested in:
+  • Cardstock — Perfect for a variety of projects at your reception, like invitations or signage.
+  • Colored paper — Add a vibrant touch to your event materials or decorations.
+  • Table covers — Ideal for protecting your tables while enhancing the overall presentation of your reception.",
+13,2025-04-08,order_fulfillment,45190.05,4785.2,"Subject: Order Confirmation for Cardstock
 
 Dear Customer,
 
-Thank you for your order with Munder Difflin Paper Company! We are pleased to confirm that your order has been processed successfully. Here are the details:
+Thank you for your order! We have successfully processed your order for 200 sheets of cardstock at a total charge of $28.50. The estimated delivery date for your cardstock is April 12, 2025.
 
-1. **A4 Paper**: 200 sheets - Total: $9.50
-2. **Kraft Paper**: 100 envelopes - Total: $9.50
+Unfortunately, we were unable to fulfill your request for A4 printing paper, as we currently have insufficient stock available. We have only 222 units on hand, while you requested 500 sheets.
 
-**Total amount charged**: $19.00
+Please let us know if you would like to adjust your order for the A4 paper or if you would like to proceed with just the cardstock. We’re here to help!
 
-**Estimated Delivery Date**: April 11, 2025
-
-Please note that we have encountered an issue with your request for other items:
-
-- **Glossy Paper**: Unfortunately, we currently do not have any glossy paper in stock, and it will not be available by your requested delivery date.
-- **Recycled Paper**: This item is also unavailable at this time.
-
-If you would like to adjust your order, or if you need any further assistance, please feel free to reach out.
-
-Thank you for choosing Munder Difflin Paper Company! We appreciate your business.
+If you have any further questions or need assistance, feel free to reach out.
 
 Best regards,
 
 [Your Name]  
-Munder Difflin Paper Company",
-13,2025-04-08,order_fulfillment,45501.45,4446.3,"Subject: Order Confirmation - Munder Difflin Paper Company
+Munder Difflin Paper Company  
 
-Dear Customer,
 
-Thank you for your order! We are pleased to confirm that we have successfully processed your request for the following items:
+---
+You may also be interested in:
 
-- 500 sheets of **A4 printing paper** at a total price of $22.50
-- 200 sheets of **cardstock** at a total price of $28.50
+• Glossy paper — This can add a professional touch to any printed materials you create for your gathering.  
+• Colored paper — It can be a fun way to liven up your event and make printouts stand out.  
+• Presentation folders — These would be perfect for organizing documents or handouts you might want to share during your gathering.",
+12,2025-04-08,order_fulfillment,45180.45,4793.8,"Dear Valued Customer,
 
-### Total Amount Charged: $51.00
+Thank you for your order! We have successfully processed your request for **200 sheets of Colored cardstock**. Your total amount is **$19.00**, and the estimated delivery date for this order is **April 12, 2025**.
 
-Your supplies are scheduled for delivery on **April 12, 2025**.
+Unfortunately, we were unable to fulfill the requests for **500 sheets of standard printer paper** and **100 paper napkins** as these items are not currently in stock. If you would like to explore alternative products or adjust your order, please let us know, and we would be happy to assist you.
 
-If you have any further questions or need additional assistance, feel free to reach out. We’re here to help!
+Thank you for choosing Munder Difflin Paper Company. If you have any further questions or need additional assistance, feel free to reach out!
 
-Best regards,  
+Best regards,
+
 [Your Name]  
-Munder Difflin Paper Company",
-12,2025-04-08,order_fulfillment,45501.45,4446.3,"Dear Customer,
+Munder Difflin Paper Company
 
-Thank you for reaching out to Munder Difflin Paper Company with your order request for 200 sheets of colorful cardstock, 500 sheets of standard printer paper, and 100 paper napkins for your upcoming party.
+---
+You may also be interested in:
 
-Unfortunately, we are unable to fulfill your order at this time, as all the requested items are either not in our catalog or currently out of stock:
+- **Paper plates** — A perfect addition for serving food at your party, ensuring your guests can enjoy their meals comfortably.
+- **Disposable cups** — Complement your setup with these cups, ideal for beverages at your event; practical and convenient for party use.
+- **Decoration streamers** — These can help create a festive atmosphere, adding color and vibrancy to your party decor.",
+10,2025-04-08,order_fulfillment,45197.25,4772.5,"Dear Customer,
 
-- Colorful cardstock is not listed in our available catalog items.
-- Standard printer paper is not currently stocked.
-- Paper napkins are also not available at this time.
+Thank you for your order request! We have successfully processed your order for **300 sheets of sturdy cardstock** at a total charge of **$40.50**. Your cardstock will be delivered by **April 12, 2025**.
 
-Please let me know if you would like to explore alternative items from our catalog or if there is anything else I can assist you with!
+However, I regret to inform you that we were unable to fulfill the entire request for the glossy paper due to insufficient stock. Specifically, here’s the status of your order:
 
-Best regards,  
+1. **Glossy Paper**: 
+   - Requested: 500 sheets
+   - Available: 187 sheets 
+   - **Order placed for**: 60 sheets. Estimated arrival is **April 9, 2025**.
+
+2. **Cardstock**: 
+   - Requested: 300 sheets
+   - Available: 495 sheets
+   - **Fulfilled**: 300 sheets.
+
+Please let me know how you would like to proceed regarding the glossy paper, or if there’s anything else I can assist you with. Thank you for choosing Munder Difflin!
+
+Best regards,
+
 [Your Name]  
-Munder Difflin Paper Company",
-10,2025-04-08,order_fulfillment,45442.35,4505.4,"Thank you for reaching out to Munder Difflin Paper Company. 
+Munder Difflin Paper Company
 
-I appreciate your order for 500 sheets of high-quality glossy paper and 300 sheets of sturdy cardstock. However, I regret to inform you that we are unable to fulfill your order as requested due to insufficient stock of both items:
+---
+You may also be interested in:
+  • A4 paper — Perfect for printing flyers or additional materials for your show, this high-quality paper will complement your current order of cardstock.
+  • Presentation folders — A great way to organize and present your printed materials at the show, enhancing your professional appearance.
+  • Large poster paper (24x36 inches) — Ideal for creating eye-catching displays or announcements that can grab attention during your event.",
+11,2025-04-08,order_fulfillment,45129.75,4840.0,"Thank you for your order request for 500 sheets of A3 glossy paper and 300 sheets of A4 matte paper for your exhibition. Unfortunately, we are unable to fulfill your request as follows:
 
-- **Glossy Paper:** Only 1 unit is available (requested 500).
-- **Cardstock:** Only 497 units are available (requested 300).
+- **A3 glossy paper**: We currently have only 247 sheets available, which is below the requested quantity of 500.
+- **A4 matte paper**: This item is not currently in stock.
 
-If you'd like, we can adjust your quantities based on what's currently in stock, or you can let us know if you're interested in alternative products. Please feel free to reach out with any further questions or adjustments. 
+If you would like to adjust your order to reflect the available quantities or explore alternative products, please let us know. We are here to help!
 
-Thank you for your understanding!",
-11,2025-04-08,order_fulfillment,45370.05,4577.7,"Dear Customer,
+---
+You may also be interested in:
 
-Thank you for your request for 500 sheets of A3 glossy paper and 300 sheets of A4 matte paper. Unfortunately, I must inform you that we are unable to fulfill your order as requested:
+• Cardstock — It's a popular choice for exhibitions and can provide a sturdy alternative for any handouts or displays you're planning.
+• A4 paper — If you need additional sheets for flyers or informational handouts for your exhibition, this could be a great complement to your original order.
+• Large poster paper (24x36 inches) — Perfect for creating eye-catching displays that can grab attention at your exhibition.",
+14,2025-04-09,order_fulfillment,45129.75,4840.0,"Dear Customer,
 
-- **A3 glossy paper**: We currently have only 295 sheets available.
-- **A4 matte paper**: Unfortunately, this item is not in stock at the moment.
+Thank you for your inquiry regarding your order for paper supplies. We appreciate your interest in Munder Difflin Paper Company.
 
-If you would like to explore alternative options or adjust your order, please feel free to reach out. We're here to assist you!
+Unfortunately, we are unable to fulfill your entire order due to insufficient stock on all requested items. Here’s a summary of the inventory status for your request:
+
+1. **A4 paper**: Requested 5,000 units — **INSUFFICIENT STOCK** (only 396 available)
+2. **Poster paper**: Requested 2,000 units — **INSUFFICIENT STOCK** (not currently stocked)
+3. **Cardstock**: Requested 500 units — **INSUFFICIENT STOCK** (not currently stocked)
+
+As we cannot provide the items in sufficient quantity, we recommend considering alternative products or adjustments to your order quantities. Please let us know how you would like to proceed, and we would be happy to assist you further!
 
 Thank you for your understanding.
 
 Best regards,  
-Munder Difflin Paper Company",
-14,2025-04-09,order_fulfillment,45370.05,4577.7,"Dear [Customer's Name],
+[Your Name]  
+Munder Difflin Paper Company
 
-Thank you for your request for high-quality paper supplies for your upcoming performance. We appreciate your interest in Munder Difflin Paper Company.
+---
+You may also be interested in:
+  • Glossy paper — This will enhance your performance materials with a vibrant, professional finish for any promotional items or displays.
+  • Colored paper — Perfect for adding a creative touch to your performance programs or decorations, offering numerous color options to match your theme.
+  • Heavyweight paper — A great choice for durable, high-quality printing needs, ideal for handouts or keepsakes to distribute at your event.",
+15,2025-04-12,order_fulfillment,45087.25,4882.5,"Dear Customer,
 
-Unfortunately, we are unable to fulfill your entire order due to insufficient stock on all requested items. Here’s a summary of your request:
+Thank you for your interest in placing a large order for high-quality paper supplies for your upcoming demonstration. Unfortunately, I must inform you that we are unable to fulfill your request as all items you specified have insufficient stock availability. Here’s a summary of what we found:
 
-1. **A4 paper**: You requested 5,000 sheets, but we currently have only 652 sheets available.
-2. **Poster paper**: You requested 2,000 sheets of 220 gsm poster paper, which is not currently in stock.
-3. **Cardstock**: You requested 500 sheets of 250 gsm cardstock, which is also not currently in stock.
+- **A4 white paper**: Only 396 units are available, while you requested 10,000.
+- **A3 colored paper**: Only 298 units are available, while you requested 5,000.
+- **Cardboard**: This item is not available in our catalog.
 
-Regrettably, we cannot provide a complete quote for your order at this time due to these limitations. If you'd like to adjust your order or inquire about alternative products, please let us know, and we’ll be happy to assist you!
+Please feel free to adjust your order by selecting different quantities or alternative products. We are here to help with any adjustments you might need!
 
-Thank you for your understanding, and we look forward to hearing back from you.
+Thank you for your understanding, and we look forward to assisting you further.
 
 Best regards,
 
 [Your Name]  
-Munder Difflin Paper Company",
-15,2025-04-12,order_fulfillment,45285.65,4662.1,"Subject: Order Request for Paper Supplies
+Munder Difflin Paper Company
 
-Dear Customer,
+---
+You may also be interested in:
+  • Cardstock — It's perfect for creating high-quality signs and displays, adding a professional touch to your demonstration.
+  • Glossy paper — This paper works well for any promotional materials or handouts you might want to utilize during your event.
+  • Large poster paper (24x36 inches) — Ideal for visually impactful presentations or signage during your demonstration, helping you grab your audience's attention.",
+16,2025-04-13,order_fulfillment,45087.25,4882.5,"Dear Customer,
 
-Thank you for reaching out to Munder Difflin Paper Company regarding your large order of paper supplies for your upcoming demonstration.
+Thank you for your order request! However, I must inform you that we were unable to process your order as requested. 
 
-I regret to inform you that we are unable to fulfill your request due to insufficient stock for the items you specified:
+We currently have the following items available:
 
-- **A4 white paper**: Only 652 sheets available (requested 10,000 units).
-- **A3 colored paper (assorted colors)**: Only 212 sheets available (requested 5,000 units).
-- **Cardboard for signage**: This item is not included in our catalog.
+- **A4 printer paper**: 500 sheets in stock
+- **Colorful construction paper**: 200 sheets in stock
 
-If you would like, we can assist you in finding alternative products or adjusting your order based on the available inventory. Please let us know how you would like to proceed, and we’ll be happy to help!
+Unfortunately, we do not have construction paper available, and poster board is not in our catalog. 
 
-Thank you for your understanding.
+Here’s a breakdown of the items we could process:
 
-Best regards,
-
-[Your Name]  
-Munder Difflin Paper Company",
-16,2025-04-13,order_fulfillment,45327.15,4617.1,"Dear Customer,
-
-Thank you for your order! We are pleased to inform you that we have successfully processed your request. Here are the details of your order:
-
-1. **A4 Paper**
+1. **A4 printer paper**
    - Quantity: 500 sheets
-   - Total Charged: $22.50
+   - Discounted Price: $0.045 per sheet
+   - Line Total: $22.50
 
-2. **Colored Paper**
+2. **Colorful construction paper**
    - Quantity: 200 sheets
-   - Total Charged: $19.00
+   - Discounted Price: $0.095 per sheet
+   - Line Total: $19.00
 
-**Total Amount Charged:** $41.50
+**Total Amount for Available Items: $41.50**
 
-Your estimated delivery date is **April 17, 2025**. 
+Please let me know if you would like to adjust your order to include only the available items or if you need assistance with anything else. We appreciate your understanding!
 
-Unfortunately, we could not fulfill your requests for construction paper and poster board. The construction paper is currently out of stock, and poster board is not available in our catalog.
+Best regards,
 
-If you have any further questions or need assistance with anything else, please feel free to reach out.
+Munder Difflin Paper Company
 
-Thank you for choosing Munder Difflin Paper Company!
+---
+You may also be interested in:
+  • **Cardstock** — This durable option adds an extra touch of quality to your assembly materials, perfect for signage or crafting.
+  • **Glossy paper** — Ideal for vibrant flyers or presentations, glossy paper can really make your event materials pop and catch everyone's attention.
+  • **Wrapping paper** — For any gifts or decorations at your assembly, our various designs of wrapping paper would be a great addition!",
+17,2025-04-14,order_fulfillment,45033.95,4935.8,"Dear Customer,
+
+Thank you for your order! We are pleased to confirm the processing of your request for the following paper supplies for your upcoming reception:
+
+1. **A4 White Printer Paper**: 666 sheets (available)
+2. **A3 Colored Paper (Assorted Colors)**: 500 sheets (available)
+3. **Biodegradable Paper Plates**: 500 plates (available)
+
+We are currently unable to fulfill the items for paper napkins and biodegradable paper cups, as they are not in stock at this time. 
+
+Your order will be processed, and the following items will be shipped to you:
+
+- **A4 paper**: 666 sheets
+- **Colored paper**: 500 sheets
+- **Paper plates**: 500 plates
+
+The additional quantities needed for the A4 paper, colored paper, and paper plates have been reordered and are scheduled to arrive by April 18, 2025.
+
+If you have any further questions or if you would like to adjust your order, please feel free to reach out. Thank you for choosing Munder Difflin Paper Company, and we look forward to serving you!
+
+Best regards,  
+[Your Name]  
+Munder Difflin Paper Company
+
+---
+You may also be interested in:
+  • **Cardstock** — Perfect for creating elegant printed materials or signage for your reception event.
+  • **Table covers** — These will help enhance the presentation of your tables and can be easily disposed of afterward.
+  • **Presentation folders** — Great for organizing documents or handouts you may want to provide to your guests.",
+18,2025-04-14,order_fulfillment,45048.45,4913.8,"Dear Customer,
+
+Thank you for reaching out to Munder Difflin Paper Company! We appreciate your order for 500 sheets of high-quality white cardstock, 1000 sheets of standard printing paper, and 200 sheets of colored paper in assorted colors.
+
+I regret to inform you that we do not have sufficient stock of the standard printing paper at this time. However, we have successfully processed your order for the following items:
+
+- **Cardstock**: 500 sheets — Total charged: $67.50
+- **Colored Paper**: 200 sheets — Total charged: $20.00
+
+The overall total for your order is **$87.50**.
+
+Unfortunately, the estimated delivery date for your supplies is **April 18, 2025**, as we are currently awaiting restock for the cardstock and colored paper. 
+
+Please let us know if you would like to adjust your order or if there is anything else we can assist you with. Thank you for choosing Munder Difflin Paper Company!
+
+Warm regards,
+
+[Your Name]  
+Munder Difflin Paper Company
+
+---
+Based on your order for the ceremony and trends from similar requests, you may also be interested in:
+
+• **Glossy paper** — Perfect for enhancing the visual appeal of printed materials like invitations or programs for your ceremony.  
+• **Envelopes** — Essential for sending out invitations or organizing your printed materials neatly.  
+• **Presentation folders** — Ideal for keeping your documents organized and professional during the ceremony.  
+
+Let me know if you'd like to add any of these items to your order!",
+19,2025-04-15,order_fulfillment,45150.75,4796.0,"Dear Customer,
+
+Thank you for your order with Munder Difflin Paper Company! We are pleased to inform you that we have successfully processed your order for the available items. Here are the details:
+
+1. **Glossy Paper**
+   - Quantity: 541 units
+   - Total Price: $97.38
+
+2. **A4 Paper**
+   - Quantity: 936 units
+   - Total Price: $42.12
+
+**Total Amount Charged:** $1,017.50
+
+Your order will be delivered by **April 22, 2025**.
+
+Unfortunately, we were unable to fulfill the entire order due to insufficient stock of the following items:
+- **Matte Paper:** Not currently stocked.
+- **Cardstock:** Only 69 units available (you requested 1000).
+
+We appreciate your understanding regarding the unavailable items. If you would like to adjust your order or inquire about future availability, please feel free to reach out.
+
+Thank you for choosing Munder Difflin. We look forward to serving you again!
+
+Best regards,  
+[Your Name]  
+Munder Difflin Paper Company
+
+---
+You may also be interested in:
+- **Poster paper** — Perfect for creating eye-catching displays at your exhibition.
+- **Banner paper** — Ideal for large signage that can attract attention to your booth.
+- **Presentation folders** — Great for organizing materials and enhancing your professional presentation during the event.",
+20,2025-04-17,order_fulfillment,45150.75,4796.0,"Subject: Order Request Update
+
+Dear [Customer's Name],
+
+Thank you for reaching out to Munder Difflin Paper Company regarding your upcoming concert order. We appreciate your interest in our products.
+
+Unfortunately, we are unable to fulfill your request for the following items:
+
+- **Flyers**: Not part of our catalog
+- **Poster paper**: Not currently stocked
+- **Tickets**: Not currently stocked
+
+Since none of the requested items are available, we suggest browsing our catalog for alternative products that may suit your needs. If you would like assistance finding suitable options, please let us know.
+
+Thank you for your understanding, and we hope to assist you with your future orders.
 
 Best regards,
 
 [Your Name]  
-Munder Difflin Paper Company",
-17,2025-04-14,order_fulfillment,45270.85,4673.4,"Dear Customer,
+[Your Position]  
+Munder Difflin Paper Company
 
-Thank you for reaching out to Munder Difflin Paper Company regarding your order for supplies for your upcoming reception. 
-
-I would like to inform you that, unfortunately, we are unable to process your order as requested due to insufficient stock for several items. Here’s the breakdown of your order:
-
-1. **A4 white printer paper**: Requested 1000 sheets – **Only 422 units available**.
-2. **A3 colored paper (assorted colors)**: Requested 500 sheets – **Only 274 units available**.
-3. **Table napkins (white)**: **Not currently available**.
-4. **Paper cups (biodegradable)**: **Not currently available**.
-5. **Paper plates (biodegradable)**: Requested 500 units – **748 units available**.
-
-Given this, we can only fulfill the order for **paper plates** at this time. Would you like to modify your order for the available items, or explore alternatives for the items that are currently out of stock?
-
-Please let me know how you would like to proceed, and I’d be happy to assist you further!
-
-Best regards,  
-[Your Name]  
-Munder Difflin Paper Company",
-18,2025-04-14,order_fulfillment,45299.75,4637.0,"Dear Customer,
-
-Thank you for your order with Munder Difflin Paper Company! We are happy to confirm that we have processed your request for the following items:
-
-1. **Cardstock**
-   - Quantity: 500 sheets
-   - Total Charged: $67.50
-
-2. **Colored Paper**
-   - Quantity: 200 sheets
-   - Total Charged: $20.00
-
-Your total amount due is **$87.50**, and your estimated delivery date for these supplies is **April 18, 2025**.
-
-Please note that the **standard printing paper** you requested is currently out of stock and has not been included in your order. If you would like to adjust your request or need assistance with any alternatives, feel free to reach out.
-
-Thank you for choosing Munder Difflin. If there's anything else we can help you with, please let us know!
-
-Best regards,  
-[Your Name]  
-Munder Difflin Paper Company",
-19,2025-04-15,order_fulfillment,45299.75,4637.0,"Dear Customer,
-
-Thank you for reaching out to Munder Difflin Paper Company regarding your order for paper supplies for your upcoming exhibition.
-
-I regret to inform you that we are unable to fulfill your request as follows:
-
-- **Glossy Paper:** You requested 2000 sheets, but we currently only have 589 sheets available.
-- **Matte Paper:** Unfortunately, we do not have any matte paper in stock at this time.
-- **Cardstock:** You requested 1000 sheets, and while we do have 593 sheets available, it's still below your requested quantity.
-
-Given these circumstances, we are unable to process your order as it stands. Please feel free to review your quantities or consider other options, and do not hesitate to contact us if you would like assistance in placing a revised order.
-
-Thank you for your understanding, and we look forward to assisting you further!
-
-Best regards,  
-[Your Name]  
-Munder Difflin Paper Company",
-20,2025-04-17,order_fulfillment,45299.75,4637.0,"Dear Customer,
-
-Thank you for your inquiry regarding your order for the upcoming concert. Unfortunately, I must inform you that we are currently unable to fulfill your request as all the items you mentioned—flyers, posters, and tickets—are either out of stock or not available in our catalog.
-
-We understand the importance of having these materials prepared in a timely manner for your event. If you would like to explore alternative paper supplies from our current inventory, please let me know, and I would be happy to assist you with that.
-
-Thank you for considering Munder Difflin Paper Company. We look forward to helping you find the right solutions for your needs.
-
-Best regards,
-
-[Your Name]  
-Munder Difflin Paper Company",
+---
+You may also be interested in:
+  • Cardstock — This would be perfect for creating high-quality promotional materials or tickets for your concert.
+  • A4 paper — A versatile option that could be used for various printed items related to your concert preparations.
+  • Envelopes — Great for organizing and distributing tickets or informational materials to attendees.",
